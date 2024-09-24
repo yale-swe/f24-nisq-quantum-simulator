@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .upload-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            margin: 20px 0;
+        }
+
+        .upload-container h2 {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="upload-container">
+        <h2>Upload Your File</h2>
+        <input type="file" id="fileInput" />
+        <br />
+        <button onclick="readBlob()">Read File</button>
+        <p id="status"></p>
+        <pre id="fileContent"></pre>
+    </div>
+
+    <script>
+        let noise_model = "";
+        //function for flexible reading of files of any type
+        function readBlob() { 
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const status = document.getElementById('status');
+            const fileContent = document.getElementById('fileContent');
+
+            if (file) {
+                // Create a Blob from the selected file
+                const blob = new Blob([file], { type: file.type });
+
+                if (type == ".npy") {
+                    
+                }
+                else {
+                // Use FileReader to read the Blob as text
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const fileData = e.target.result;
+                    //fileContent.textContent = fileData;  // Output the content as a string
+                    status.textContent = 'File read successfully using Blob!';
+                    setNoiseModel(fileData); // Pass the file data to setNoiseModel function
+                };
+                reader.onerror = function (e) {
+                    status.textContent = 'Error reading file!';
+                };
+
+                // Read the Blob's contents as text
+                reader.readAsText(blob);
+            }
+            } else {
+                status.textContent = 'No file selected!';
+            }
+        }
+
+        function setNoiseModel(file_data) {
+            noise_model = file_data;
+            fileContent.textContent = file_data;
+            console.log('Noise model set:', noise_model); // Just to verify it's working
+        }
+
+    </script>
+</body>
+
+</html>
