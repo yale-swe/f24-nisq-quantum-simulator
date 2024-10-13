@@ -27,9 +27,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest
 
-    - name: Make the test script executable
-      run: chmod +x simulation/test_evolution.py
-
     - name: Run Tests
       run: |
-        simulation/test_evolution.py
+        python3 simulation/test_evolution.py
