@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"  // Added test script
+    "test": "jest"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -15,7 +15,7 @@
     "next": "14.2.14",
     "react": "^18",
     "react-dom": "^18",
-    "mathjs": "^13.2.0",  // Added mathjs dependency
-    "test": "^3.3.0"       // Added test dependency
+    "mathjs": "^13.2.0",
+    "test": "^3.3.0"
   }
 }
