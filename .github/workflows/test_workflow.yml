@@ -9,24 +9,42 @@ on:
       - main
 
 jobs:
-  test:
-    name: Run Evolution Tests
+  # python-tests:
+  #   name: Run Back End Tests
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Check out code
+  #     uses: actions/checkout@v3
+
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.x'
+
+  #   - name: Install dependencies
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       pip install -r requirements.txt
+
+  #   - name: Run Tests
+  #     run: |
+  #       python3 simulation/test_evolution.py
+  javascript-tests:
+    name: Run Front End Tests
     runs-on: ubuntu-latest
 
     steps:
     - name: Check out code
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
       with:
-        python-version: '3.x'
+        node-version: '18'
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      run: npm install
 
-    - name: Run Tests
-      run: |
-        python3 simulation/test_evolution.py
+    - name: Run JavaScript Tests
+      run: npx jest "Noise Model/__tests__/validateFileType.test.js"
