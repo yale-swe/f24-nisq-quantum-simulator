@@ -46,5 +46,5 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run JavaScript Tests
-      run: npx jest "Noise Model/__tests__/validateFileType.test.js"
+    - name: Run Jest Tests
+      run: npx jest "Noise Model/__tests__/validateFileType.test.js" --config jest.config.js
