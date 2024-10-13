@@ -9,27 +9,27 @@ on:
       - main
 
 jobs:
-  # python-tests:
-  #   name: Run Back End Tests
-  #   runs-on: ubuntu-latest
+  python-tests:
+    name: Run Back End Tests
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #   - name: Check out code
-  #     uses: actions/checkout@v3
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
 
-  #   - name: Set up Python
-  #     uses: actions/setup-python@v5
-  #     with:
-  #       python-version: '3.x'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
 
-  #   - name: Install dependencies
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-  #   - name: Run Tests
-  #     run: |
-  #       python3 simulation/test_evolution.py
+    - name: Run Tests
+      run: |
+        python3 simulation/test_evolution.py
   javascript-tests:
     name: Run Front End Tests
     runs-on: ubuntu-latest
