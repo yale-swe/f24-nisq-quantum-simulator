@@ -47,4 +47,4 @@ jobs:
       run: npm install
 
     - name: Run Jest Tests
-      run: npx jest "Noise Model/__tests__/validateFileType.test.js" --config jest.config.js
+      run: npx jest "Noise Model/__tests__/validateFileType.test.js"
