@@ -1,9 +1,21 @@
 {
-    "scripts": {
-        "test": "jest"
-    },
-    "dependencies": {
-        "mathjs": "^13.2.0",
-        "test": "^3.3.0"
-    }
+  "name": "qs-test-2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest"  // Added test script
+  },
+  "dependencies": {
+    "@hello-pangea/dnd": "^17.0.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "next": "14.2.14",
+    "react": "^18",
+    "react-dom": "^18",
+    "mathjs": "^13.2.0",  // Added mathjs dependency
+    "test": "^3.3.0"       // Added test dependency
+  }
 }
