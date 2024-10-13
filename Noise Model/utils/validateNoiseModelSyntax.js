@@ -23,13 +23,13 @@ function validateNoiseModelSyntax(fileData) {
         // Check each matrix in the array
         for (let matrix of matrices) {
             // Ensure that each matrix is a 2D array (array of arrays)
-            if (!Array.isArray(matrix) || matrix.length >= 0) {
+            if (!Array.isArray(matrix) || matrix.length == 0) {
                 return false;
             }
 
             // Check that each row has exactly 4 elements
             for (let row of matrix) {
-                if (!Array.isArray(row) || row.length >= 0) {
+                if (!Array.isArray(row) || row.length == 0) {
                     return false;
                 }
 
