@@ -1,0 +1,53 @@
+name: Run all tests on git push and PR's. 
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  python-tests:
+    name: Run Back End Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Tests
+      run: |
+        python3 simulation/test_evolution.py
+  javascript-tests:
+    name: Run Front End Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Jest Tests
+      run: |
+        npx jest "Noise Model/__tests__/validateFileType.test.js"
+        npx jest "Noise Model/__tests__/validateNoiseModelLinAlg.test.js"
+        npx jest "Noise Model/__tests__/validateNoiseModelSyntax.test.js"
