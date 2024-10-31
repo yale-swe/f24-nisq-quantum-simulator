@@ -33,13 +33,12 @@ export default function DragAndDropGrid() {
       .fill(null)
       .map(() =>
         Array(GRID_COLUMNS).fill(null).map(() => ({
-          gate: null, // The gate placed in this cell
-          occupiedBy: null, // For gates that occupy multiple cells
+          gate: null,
+          occupiedBy: null,
         }))
       )
   );
 
-  // Function to get the sequence of values for a row
   const getRowValues = (rowIndex) => {
     const row = grid[rowIndex];
     return row.map((cell) => {
@@ -50,50 +49,41 @@ export default function DragAndDropGrid() {
     });
   };
 
+  const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
+    // Check if any cell in the column is occupied by a CNOT gate
+    // (except for the current gate if we're moving an existing CNOT)
+    for (let row = 0; row < GRID_ROWS; row++) {
+      const cell = grid[row][destCol];
+      if (cell.occupiedBy && cell.occupiedBy !== currentGateId) {
+        const occupyingGate = grid[0][destCol].gate || grid[1][destCol].gate;
+        if (occupyingGate && occupyingGate.type.startsWith('CNOT')) {
+          return true;
+        }
+      }
+    }
+
+    // If placing a CNOT gate, check if any cell in the column is occupied
+    if (gateType.startsWith('CNOT')) {
+      for (let row = 0; row < GRID_ROWS; row++) {
+        const cell = grid[row][destCol];
+        if (cell.gate && (!currentGateId || cell.occupiedBy !== currentGateId)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
+
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
-    // If the item is dropped back where it started, do nothing
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) {
-      return;
-    }
-
-    // Handle removing from grid
-    if (source.droppableId.startsWith('cell-') && destination.droppableId === 'icons') {
-      const [sourceRow, sourceCol] = source.droppableId
-        .split('-')
-        .slice(1)
-        .map(Number);
-
-      const cellData = grid[sourceRow][sourceCol];
-
-      // For CNOT gate, clear both cells
-      let newGrid = [...grid];
-      if (cellData.gate.type === 'CNOT') {
-        newGrid = newGrid.map((row, rowIndex) => {
-          const newRow = [...row];
-          if (newRow[sourceCol].occupiedBy === cellData.gate.id) {
-            newRow[sourceCol] = { gate: null, occupiedBy: null };
-          }
-          return newRow;
-        });
-      } else {
-        newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
-      }
-      setGrid(newGrid);
-
-      // Remove from Supabase
-      try {
-        await supabase.from('icon_positions').delete().eq('id', draggableId);
-      } catch (error) {
-        console.error('Error deleting data:', error);
-      }
-
       return;
     }
 
@@ -112,21 +102,14 @@ export default function DragAndDropGrid() {
         .map(Number);
 
       const cellData = grid[sourceRow][sourceCol];
+      
+      // Check for CNOT conflicts
+      if (isCNOTConflict(destRow, destCol, cellData.gate.type, cellData.gate.id)) {
+        alert('Cannot move gate here due to CNOT gate conflict.');
+        return;
+      }
 
-      // Check if destination is available
-      if (cellData.gate.type === 'CNOT') {
-        // For CNOT, check both rows at destCol
-        if (
-          grid[0][destCol].gate ||
-          grid[1][destCol].gate ||
-          grid[0][destCol].occupiedBy ||
-          grid[1][destCol].occupiedBy
-        ) {
-          alert('Cannot move CNOT gate here. Cells are occupied.');
-          return;
-        }
-
-        // Clear old positions
+      if (cellData.gate.type.startsWith('CNOT')) {
         let newGrid = grid.map((row, rowIndex) => {
           const newRow = [...row];
           if (newRow[sourceCol].occupiedBy === cellData.gate.id) {
@@ -135,7 +118,6 @@ export default function DragAndDropGrid() {
           return newRow;
         });
 
-        // Set new positions
         newGrid = newGrid.map((row, rowIndex) => {
           const newRow = [...row];
           newRow[destCol] = {
@@ -146,45 +128,30 @@ export default function DragAndDropGrid() {
         });
 
         setGrid(newGrid);
-
-        // Update Supabase
-        try {
-          await supabase
-            .from('icon_positions')
-            .update({ position_x: destCol, position_y: destRow })
-            .eq('id', draggableId);
-        } catch (error) {
-          console.error('Error updating data:', error);
-        }
       } else {
-        // For other gates
-        if (grid[destRow][destCol].gate) {
+        // For regular gates, only check the specific destination cell
+        if (grid[destRow][destCol].occupiedBy) {
           alert('Destination cell is occupied.');
           return;
         }
 
         const newGrid = [...grid];
-
-        // Remove from old position
         newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
-
-        // Place in new position
         newGrid[destRow][destCol] = {
           gate: cellData.gate,
           occupiedBy: cellData.gate.id,
         };
 
         setGrid(newGrid);
+      }
 
-        // Update Supabase
-        try {
-          await supabase
-            .from('icon_positions')
-            .update({ position_x: destCol, position_y: destRow })
-            .eq('id', draggableId);
-        } catch (error) {
-          console.error('Error updating data:', error);
-        }
+      try {
+        await supabase
+          .from('icon_positions')
+          .update({ position_x: destCol, position_y: destRow })
+          .eq('id', draggableId);
+      } catch (error) {
+        console.error('Error updating data:', error);
       }
 
       return;
@@ -193,29 +160,19 @@ export default function DragAndDropGrid() {
     // Handle adding new gate from icons to grid
     if (source.droppableId === 'icons' && destination.droppableId.startsWith('cell-')) {
       const originalIcon = icons.find((icon) => icon.id === draggableId);
-
-      // Create a new gate instance with a unique ID
       const newGate = { ...originalIcon, id: uuidv4() };
-
       const [destRow, destCol] = destination.droppableId
         .split('-')
         .slice(1)
         .map(Number);
 
-      // For CNOT gate
-      if (newGate.type === 'CNOT') {
-        // Check if CNOT can be placed (both rows must be empty in this column)
-        if (
-          grid[0][destCol].gate ||
-          grid[1][destCol].gate ||
-          grid[0][destCol].occupiedBy ||
-          grid[1][destCol].occupiedBy
-        ) {
-          alert('Cannot place CNOT gate here. Cells are occupied.');
-          return;
-        }
+      // Check for CNOT conflicts with new gate
+      if (isCNOTConflict(destRow, destCol, newGate.type)) {
+        alert('Cannot place gate here due to CNOT gate conflict.');
+        return;
+      }
 
-        // Update the grid state
+      if (newGate.type.startsWith('CNOT')) {
         const newGrid = grid.map((row, rowIndex) => {
           const newRow = [...row];
           newRow[destCol] = {
@@ -225,59 +182,43 @@ export default function DragAndDropGrid() {
           return newRow;
         });
         setGrid(newGrid);
-
-        // Save to Supabase
-        try {
-          await supabase.from('icon_positions').insert([
-            {
-              id: newGate.id,
-              icon_type: newGate.type,
-              position_x: destCol,
-              position_y: destRow,
-            },
-          ]);
-        } catch (error) {
-          console.error('Error inserting data:', error);
-        }
       } else {
-        // For other gates
-        // Check if the cell is empty
-        if (grid[destRow][destCol].gate) {
-          alert('Cell is already occupied.');
+        // For regular gates, only check the specific destination cell
+        if (grid[destRow][destCol].occupiedBy) {
+          alert('Destination cell is occupied.');
           return;
         }
 
-        // Update the grid state
         const newGrid = [...grid];
         newGrid[destRow][destCol] = {
           gate: newGate,
           occupiedBy: newGate.id,
         };
         setGrid(newGrid);
-
-        // Save to Supabase
-        try {
-          await supabase.from('icon_positions').insert([
-            {
-              id: newGate.id,
-              icon_type: newGate.type,
-              position_x: destCol,
-              position_y: destRow,
-            },
-          ]);
-        } catch (error) {
-          console.error('Error inserting data:', error);
-        }
       }
 
+      try {
+        await supabase.from('icon_positions').insert([
+          {
+            id: newGate.id,
+            icon_type: newGate.type,
+            position_x: destCol,
+            position_y: destRow,
+          },
+        ]);
+      } catch (error) {
+        console.error('Error inserting data:', error);
+      }
       return;
     }
   };
 
+
+  // Rest of the component remains the same...
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
       <DragDropContext onDragEnd={onDragEnd}>
-        {/* Icons to drag */}
+        {/* Icons section */}
         <div style={{ padding: '20px' }}>
           <h2 style={{ color: 'black' }}>Available Icons</h2>
           <Droppable
@@ -319,7 +260,7 @@ export default function DragAndDropGrid() {
           </Droppable>
         </div>
 
-        {/* Grid */}
+        {/* Grid section */}
         <div style={{ padding: '20px' }}>
           <h2 style={{ color: 'black' }}>Grid</h2>
           <div
@@ -327,7 +268,7 @@ export default function DragAndDropGrid() {
               display: 'grid',
               gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
               gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
-              position: 'relative', // Ensure positioning context
+              position: 'relative',
             }}
           >
             {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
@@ -336,7 +277,7 @@ export default function DragAndDropGrid() {
                 const cellData = grid[rowIndex][colIndex];
                 const isCNOT =
                   cellData.gate &&
-                  cellData.gate.type === 'CNOT' &&
+                  cellData.gate.type.startsWith('CNOT') &&
                   rowIndex === 0;
                 return (
                   <Droppable droppableId={cellId} key={cellId}>
@@ -357,8 +298,8 @@ export default function DragAndDropGrid() {
                           backgroundColor: '#fff',
                           gridRowStart: rowIndex + 1,
                           gridColumnStart: colIndex + 1,
-                          position: 'relative', // Ensure positioning context for absolute children
-                          overflow: 'visible', // Allow content to overflow if necessary
+                          position: 'relative',
+                          overflow: 'visible',
                         }}
                       >
                         {cellData.gate ? (
@@ -381,7 +322,7 @@ export default function DragAndDropGrid() {
                                     width: '60px',
                                     height: '120px',
                                     gridRow: 'span 2',
-                                    zIndex: 1, // Ensure it's above other elements
+                                    zIndex: 1,
                                   }}
                                 >
                                   <Image
@@ -430,7 +371,7 @@ export default function DragAndDropGrid() {
           </div>
         </div>
 
-        {/* Output Values */}
+        {/* Output Values section */}
         <div style={{ padding: '20px', color: 'black' }}>
           <h2 style={{ color: 'black' }}>Row Outputs</h2>
           {grid.map((_, rowIndex) => (
