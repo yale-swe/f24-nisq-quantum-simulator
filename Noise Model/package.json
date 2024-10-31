@@ -1,9 +1,0 @@
-{
-    "scripts": {
-        "test": "jest"
-    },
-    "dependencies": {
-        "mathjs": "^13.2.0",
-        "test": "^3.3.0"
-    }
-}

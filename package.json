@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:website": "cd frontend-interface && node ../node_modules/next/dist/bin/next dev && cd ..",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
