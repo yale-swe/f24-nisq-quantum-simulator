@@ -1,4 +1,4 @@
-// File: /Users/ryan/Documents/GitHub/f24-nisq-quantum-simulator/frontend-interface/app/layout.js
+// File: /Users/ben/Dropbox/yale_grad/currprojects/QCIRC2024/f24-nisq-quantum-simulator/frontend-interface/app/layout.js
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
