@@ -39,6 +39,7 @@ export default function DragAndDropGrid() {
 			)
 	);
 
+<<<<<<< Updated upstream
 	const getRowValues = (rowIndex) => {
 		const row = grid[rowIndex];
 		return row.map((cell) => {
@@ -61,6 +62,38 @@ export default function DragAndDropGrid() {
 	    }
 	    return false;
 	  }
+=======
+  const [getRowValuesCallCount, setGetRowValuesCallCount] = useState(0); // get row values call count
+
+  const getRowValues = (rowIndex) => {
+    setGetRowValuesCallCount(prev => prev + 1); // increment call count
+    const row = grid[rowIndex];
+    return row.map((cell) => {
+      if (cell.gate && cell.gate.value !== null) {
+        return cell.gate.value;
+      }
+      return 0;
+    });
+  };
+
+    // Function to get all row values at once
+    const getAllRowValues = () => {
+      return Array.from({ length: GRID_ROWS }, (_, index) => getRowValues(index));
+    };
+
+  const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
+    // Check if any cell in the column is occupied by a CNOT gate
+    // (except for the current gate if we're moving an existing CNOT)
+    for (let row = 0; row < GRID_ROWS; row++) {
+      const cell = grid[row][destCol];
+      if (cell.occupiedBy && cell.occupiedBy !== currentGateId) {
+        const occupyingGate = grid[0][destCol].gate || grid[1][destCol].gate;
+        if (occupyingGate && occupyingGate.type.startsWith('CNOT')) {
+          return true;
+        }
+      }
+    }
+>>>>>>> Stashed changes
 
 	  // For CNOT gates, check if any cell in column is occupied
 	  for (let row = 0; row < GRID_ROWS; row++) {
@@ -216,6 +249,7 @@ const onDragEnd = async (result) => {
     }
 };
 
+<<<<<<< Updated upstream
 const [simulationResults, setSimulationResults] = useState(null);
 
 const convertGridToIR = () => {
@@ -454,6 +488,195 @@ const handleSimulate = async () => {
                     </div>
                 ))}
             </div>
+=======
+  // Rest of the component remains the same...
+  return (
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {/* Icons section */}
+        <div style={{ padding: '20px' }}>
+          <h2 style={{ color: 'black' }}>Available Icons</h2>
+          <Droppable
+            droppableId="icons"
+            direction="horizontal"
+            isDropDisabled={false}
+          >
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                style={{ display: 'flex', gap: '10px' }}
+              >
+                {icons.map((icon, index) => (
+                  <Draggable key={icon.id} draggableId={icon.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        style={{
+                          cursor: 'pointer',
+                          ...provided.draggableProps.style,
+                        }}
+                      >
+                        <Image
+                          src={icon.content}
+                          width={50}
+                          height={50}
+                          alt={icon.type}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </div>
+
+        {/* Grid section */}
+        <div style={{ padding: '20px' }}>
+          <h2 style={{ color: 'black' }}>Grid</h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
+              gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
+              position: 'relative',
+            }}
+          >
+            {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
+              Array.from({ length: GRID_COLUMNS }).map((_, colIndex) => {
+                const cellId = `cell-${rowIndex}-${colIndex}`;
+                const cellData = grid[rowIndex][colIndex];
+                const isCNOT =
+                  cellData.gate &&
+                  cellData.gate.type.startsWith('CNOT') &&
+                  rowIndex === 0;
+                return (
+                  <Droppable droppableId={cellId} key={cellId}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        style={{
+                          width: '60px',
+                          height: '60px',
+                          borderBottom:
+                            rowIndex < GRID_ROWS - 1 ? '1px solid black' : 'none',
+                          borderRight:
+                            colIndex < GRID_COLUMNS - 1 ? '1px solid black' : 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#fff',
+                          gridRowStart: rowIndex + 1,
+                          gridColumnStart: colIndex + 1,
+                          position: 'relative',
+                          overflow: 'visible',
+                        }}
+                      >
+                        {cellData.gate ? (
+                          isCNOT ? (
+                            <Draggable
+                              draggableId={cellData.gate.id}
+                              index={0}
+                            >
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    cursor: 'pointer',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '60px',
+                                    height: '120px',
+                                    gridRow: 'span 2',
+                                    zIndex: 1,
+                                  }}
+                                >
+                                  <Image
+                                    src={cellData.gate.content}
+                                    layout="fixed"
+                                    width={60}
+                                    height={120}
+                                    alt={cellData.gate.type}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          ) : cellData.gate.type !== 'CNOT' ? (
+                            <Draggable
+                              draggableId={cellData.gate.id}
+                              index={0}
+                            >
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <Image
+                                    src={cellData.gate.content}
+                                    width={50}
+                                    height={50}
+                                    alt={cellData.gate.type}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          ) : null
+                        ) : null}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Output Values section */}
+        <div style={{ padding: '20px', color: 'black' }}>
+          <h2 style={{ color: 'black' }}>Row Outputs</h2>
+          {grid.map((_, rowIndex) => {
+            const rowValues = getRowValues(rowIndex);
+            // Make the values available on window for external access
+            if (typeof window !== 'undefined') {
+              window.circuitValues = window.circuitValues || {};
+              window.circuitValues[`row${rowIndex + 1}`] = rowValues;
+              window.circuitValues.getAllValues = getAllRowValues;
+            }
+            return (
+              <div key={rowIndex}>
+                <strong>Row {rowIndex + 1} Output:</strong> [{rowValues.join(', ')}]
+              </div>
+            );
+          })}
+          
+          <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+            <p><strong>getRowValues call count:</strong> {getRowValuesCallCount}</p>
+            <p><strong>To access these values from another program:</strong></p>
+            <pre style={{ backgroundColor: '#e0e0e0', padding: '10px', borderRadius: '4px' }}>
+              {`// Get a specific row's values:
+                window.circuitValues.row1  // for row 1
+                window.circuitValues.row2  // for row 2
+
+                // Get all rows at once:
+                window.circuitValues.getAllValues()`}
+            </pre>
+          </div>
+>>>>>>> Stashed changes
         </div>
     )}
     {simulationResults && simulationResults.plot && (
