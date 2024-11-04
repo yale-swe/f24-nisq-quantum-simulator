@@ -49,18 +49,18 @@ export default function DragAndDropGrid() {
     });
   };
 
-  const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
-    // Check if any cell in the column is occupied by a CNOT gate
-    // (except for the current gate if we're moving an existing CNOT)
-    for (let row = 0; row < GRID_ROWS; row++) {
-      const cell = grid[row][destCol];
-      if (cell.occupiedBy && cell.occupiedBy !== currentGateId) {
-        const occupyingGate = grid[0][destCol].gate || grid[1][destCol].gate;
-        if (occupyingGate && occupyingGate.type.startsWith('CNOT')) {
-          return true;
-        }
-      }
-    }
+	const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
+	  // For single-qubit gates, only check for CNOT conflicts
+	  if (!gateType.startsWith('CNOT')) {
+	    // Only check if there's a CNOT gate in this column
+	    for (let row = 0; row < GRID_ROWS; row++) {
+	      const cell = grid[row][destCol];
+	      if (cell.gate && cell.gate.type.startsWith('CNOT')) {
+	        return true;
+	      }
+	    }
+	    return false;
+	  }
 
     // If placing a CNOT gate, check if any cell in the column is occupied
     if (gateType.startsWith('CNOT')) {
@@ -77,6 +77,41 @@ export default function DragAndDropGrid() {
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
+
+    // Handle dragging gates out of the circuit
+    if (!destination && source.droppableId.startsWith('cell-')) {
+        const [sourceRow, sourceCol] = source.droppableId.split('-').slice(1).map(Number);
+        const cellData = grid[sourceRow][sourceCol];
+
+        // Handle CNOT gate removal
+        if (cellData.gate.type.startsWith('CNOT')) {
+            const newGrid = grid.map(row => {
+                return row.map((cell, colIndex) => {
+                    if (colIndex === sourceCol && cell.occupiedBy === cellData.gate.id) {
+                        return { gate: null, occupiedBy: null };
+                    }
+                    return cell;
+                });
+            });
+            setGrid(newGrid);
+        } else {
+            // Handle regular gate removal
+            const newGrid = [...grid];
+            newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
+            setGrid(newGrid);
+        }
+
+        // Remove from database
+        try {
+            await supabase
+                .from('icon_positions')
+                .delete()
+                .eq('id', draggableId);
+        } catch (error) {
+            console.error('Error deleting data:', error);
+        }
+        return;
+    }
 
     if (!destination) return;
 
