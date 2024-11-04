@@ -100,18 +100,24 @@ export default function DragAndDropGrid() {
             newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
             setGrid(newGrid);
         }
-
-        // Remove from database
-        try {
-            await supabase
-                .from('icon_positions')
-                .delete()
-                .eq('id', draggableId);
-        } catch (error) {
-            console.error('Error deleting data:', error);
-        }
-        return;
+      }
     }
+
+    // If placing a CNOT gate, check if any cell in the column is occupied
+    if (gateType.startsWith('CNOT')) {
+      for (let row = 0; row < GRID_ROWS; row++) {
+        const cell = grid[row][destCol];
+        if (cell.gate && (!currentGateId || cell.occupiedBy !== currentGateId)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
+
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
