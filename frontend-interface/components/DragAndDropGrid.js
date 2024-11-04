@@ -39,8 +39,6 @@ export default function DragAndDropGrid() {
       )
   );
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
 	const getRowValues = (rowIndex) => {
 		const row = grid[rowIndex];
 		return row.map((cell) => {
@@ -82,7 +80,7 @@ export default function DragAndDropGrid() {
       return Array.from({ length: GRID_ROWS }, (_, index) => getRowValues(index));
     };
 
-=======
+
   const getRowValues = (rowIndex) => {
     const row = grid[rowIndex];
     return row.map((cell) => {
@@ -93,7 +91,6 @@ export default function DragAndDropGrid() {
     });
   };
 
->>>>>>> parent of 03ed759 (multiple single qubit gates in each column, can drag gates out of circuit, set up infra for frontend, backend, and visualization)
   const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
     // Check if any cell in the column is occupied by a CNOT gate
     // (except for the current gate if we're moving an existing CNOT)
@@ -103,11 +100,9 @@ export default function DragAndDropGrid() {
         const occupyingGate = grid[0][destCol].gate || grid[1][destCol].gate;
         if (occupyingGate && occupyingGate.type.startsWith('CNOT')) {
           return true;
-<<<<<<< HEAD
         }
       }
     }
->>>>>>> Stashed changes
 
 	  // For CNOT gates, check if any cell in column is occupied
 	  for (let row = 0; row < GRID_ROWS; row++) {
@@ -143,8 +138,6 @@ const onDragEnd = async (result) => {
             const newGrid = [...grid];
             newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
             setGrid(newGrid);
-=======
->>>>>>> parent of 03ed759 (multiple single qubit gates in each column, can drag gates out of circuit, set up infra for frontend, backend, and visualization)
         }
       }
     }
