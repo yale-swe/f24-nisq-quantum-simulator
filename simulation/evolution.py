@@ -43,6 +43,42 @@ Future improvements will focus on expanding the capabilities to handle more comp
 parallel operations in circuits of any size.
 """
 
+# start of fetch json file code
+import json
+import os
+
+def fetch_outputs():
+    # Get the absolute path to the root directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(script_dir, '..'))
+    # outputs.json is now in the root directory
+    file_path = os.path.join(root_dir, 'outputs.json')
+    try:
+        with open(file_path, 'r') as f:
+            outputs = json.load(f)
+        return outputs
+    except FileNotFoundError:
+        print('outputs.json file not found.')
+        return []
+    except json.JSONDecodeError:
+        print('Error decoding JSON from outputs.json.')
+        return []
+
+def main():
+    outputs = fetch_outputs()
+    if not outputs:
+        print('No outputs to process.')
+        return
+
+    for item in outputs:
+        row_index = item['row_index']
+        values = item['values']
+        print(f"Row {row_index} Output: {values}")
+        # Add your processing logic here
+
+if __name__ == '__main__':
+    main()
+#end of fetch json file code
 
 I = qt.qeye(2)
 X = qt.sigmax()
