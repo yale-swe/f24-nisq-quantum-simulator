@@ -7,6 +7,11 @@ const DragAndDropGrid = dynamic(
   { ssr: false }
 );
 
+const NoiseModel = dynamic(
+  () => import('../components/NoiseModel'),
+  {ssr: false}
+)
 export default function HomePage() {
   return <DragAndDropGrid />;
+  return < NoiseModel />;
 }
