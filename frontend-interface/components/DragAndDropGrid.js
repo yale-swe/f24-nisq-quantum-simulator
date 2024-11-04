@@ -49,7 +49,6 @@ export default function DragAndDropGrid() {
     });
   };
 
-<<<<<<< HEAD
 	const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
 	  // For single-qubit gates, only check for CNOT conflicts
 	  if (!gateType.startsWith('CNOT')) {
@@ -63,62 +62,20 @@ export default function DragAndDropGrid() {
 	    return false;
 	  }
 
-  const [getRowValuesCallCount, setGetRowValuesCallCount] = useState(0); // get row values call count
-
-  const getRowValues = (rowIndex) => {
-    setGetRowValuesCallCount(prev => prev + 1); // increment call count
-    const row = grid[rowIndex];
-    return row.map((cell) => {
-      if (cell.gate && cell.gate.value !== null) {
-        return cell.gate.value;
-      }
-      return 0;
-    });
-  };
-
-    // Function to get all row values at once
-    const getAllRowValues = () => {
-      return Array.from({ length: GRID_ROWS }, (_, index) => getRowValues(index));
-    };
-
-
-  const getRowValues = (rowIndex) => {
-    const row = grid[rowIndex];
-    return row.map((cell) => {
-      if (cell.gate && cell.gate.value !== null) {
-        return cell.gate.value;
-      }
-      return 0;
-    });
-  };
-
-=======
->>>>>>> parent of 03ed759 (multiple single qubit gates in each column, can drag gates out of circuit, set up infra for frontend, backend, and visualization)
-  const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
-    // Check if any cell in the column is occupied by a CNOT gate
-    // (except for the current gate if we're moving an existing CNOT)
-    for (let row = 0; row < GRID_ROWS; row++) {
-      const cell = grid[row][destCol];
-      if (cell.occupiedBy && cell.occupiedBy !== currentGateId) {
-        const occupyingGate = grid[0][destCol].gate || grid[1][destCol].gate;
-        if (occupyingGate && occupyingGate.type.startsWith('CNOT')) {
+    // If placing a CNOT gate, check if any cell in the column is occupied
+    if (gateType.startsWith('CNOT')) {
+      for (let row = 0; row < GRID_ROWS; row++) {
+        const cell = grid[row][destCol];
+        if (cell.gate && (!currentGateId || cell.occupiedBy !== currentGateId)) {
           return true;
-<<<<<<< HEAD
         }
       }
     }
 
-	  // For CNOT gates, check if any cell in column is occupied
-	  for (let row = 0; row < GRID_ROWS; row++) {
-	    const cell = grid[row][destCol];
-	    if (cell.gate && (!currentGateId || cell.occupiedBy !== currentGateId)) {
-	      return true;
-	    }
-	  }
-	  return false;
-	};
+    return false;
+  };
 
-const onDragEnd = async (result) => {
+  const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
 
     // Handle dragging gates out of the circuit
@@ -142,27 +99,19 @@ const onDragEnd = async (result) => {
             const newGrid = [...grid];
             newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
             setGrid(newGrid);
-=======
->>>>>>> parent of 03ed759 (multiple single qubit gates in each column, can drag gates out of circuit, set up infra for frontend, backend, and visualization)
         }
-      }
-    }
 
-    // If placing a CNOT gate, check if any cell in the column is occupied
-    if (gateType.startsWith('CNOT')) {
-      for (let row = 0; row < GRID_ROWS; row++) {
-        const cell = grid[row][destCol];
-        if (cell.gate && (!currentGateId || cell.occupiedBy !== currentGateId)) {
-          return true;
+        // Remove from database
+        try {
+            await supabase
+                .from('icon_positions')
+                .delete()
+                .eq('id', draggableId);
+        } catch (error) {
+            console.error('Error deleting data:', error);
         }
-      }
+        return;
     }
-
-    return false;
-  };
-
-  const onDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
