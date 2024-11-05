@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LinearSegmentedColormap
+import io
+import base64
 
 # Define the quantum matrix with complex elements
 quantum_matrix = np.array([[2 + 1j, 7], [-4j, 5]])
@@ -53,6 +55,10 @@ ax.set_yticklabels(['Row 1', 'Row 2'])
 ax.set_zlim(0, 2 * np.pi)
 ax.set_zlabel("Probability Density (0 to 2π)")
 
-# Display the plot
-plt.show()
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
+image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+plt.close()  # Clean up
+return image_base64
 
