@@ -248,32 +248,20 @@ def matrix_to_serializable(matrix):
 
 
 def simulate_quantum_circuit(circuit_ir):
-    """
-    Simulates a quantum circuit and returns both density matrix data and plot
-    
-    Args:
-        circuit_ir: Intermediate representation of quantum circuit
-        
-    Returns:
-        dict: Contains density matrix data and base64 encoded plot image
-    """
     # Initialize quantum state
-    num_qubits = len(circuit_ir[0])  # Get number of qubits from first layer
+    num_qubits = len(circuit_ir[0])  
     initial_state = qt.basis([2] * num_qubits, [0] * num_qubits)
     current_state = initial_state
-
-    # Process each layer of the circuit
-    for layer in circuit_ir:
-        # Process gates in the layer
-        # (Implementation details omitted for brevity - keep your existing simulation logic)
-        pass
 
     # Get final density matrix
     final_state = current_state * current_state.dag()
     
+    # Convert Qobj to numpy array before plotting
+    final_state_array = final_state.full()  # This converts Qobj to numpy array
+    
     # Generate the density matrix plot
     plt.figure(figsize=(8, 6))
-    create_density_matrix_plot(final_state)
+    create_density_matrix_plot(final_state_array)
     
     # Save plot to bytes buffer
     buffer = BytesIO()
@@ -284,11 +272,7 @@ def simulate_quantum_circuit(circuit_ir):
     buffer.seek(0)
     plot_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     
-    # Convert density matrix to serializable format
-    density_matrix_data = final_state.full().tolist()
-    
     return {
-        'density_matrix': density_matrix_data,
         'plot_image': plot_base64
     }
 
