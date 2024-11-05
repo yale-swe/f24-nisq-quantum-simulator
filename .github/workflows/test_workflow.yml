@@ -29,7 +29,7 @@ jobs:
 
     - name: Run Tests
       run: |
-        python3 simulation/test_evolution.py
+        python3 backend/test_evolution.py
   javascript-tests:
     name: Run Front End Tests
     runs-on: ubuntu-latest
