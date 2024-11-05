@@ -59,9 +59,12 @@ export async function POST(request) {
         console.log('Quantum simulation completed successfully');
 
         return NextResponse.json({
-            message: 'Simulation completed successfully',
-            data: simulationResult
-        }, { status: 200 });
+    message: 'Simulation completed successfully',
+    data: {
+        densityMatrix: simulationResult.density_matrix, // Assuming this is the key from Python
+        // other data...
+    }
+}, { status: 200 });
 
     } catch (error) {
         console.error('Error during quantum simulation:', error);
