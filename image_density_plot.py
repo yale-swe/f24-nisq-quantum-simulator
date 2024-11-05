@@ -55,7 +55,7 @@ def save_density_plot(quantum_matrix, filename="density_plot.png"):
     # Save the plot as a PNG file
     plt.savefig(filename)
     plt.close(fig)
-    print(f"Density plot saved as {filename}")
+#   print(f"Density plot saved as {filename}")
 
 # Example usage for multiple qubits
 # quantum_matrix = np.array([[2 + 1j, 7, -1j, 0], [4, 3 + 1j, 2, -5j], [0, 1 - 1j, 5, 3], [-4j, 0, 7, 2]])
