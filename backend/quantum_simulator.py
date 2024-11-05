@@ -235,26 +235,48 @@ def get_depolarizing_ops(p, n):
     return c_ops
 
 
+def complex_to_serializable(z):
+    """Convert a complex number to a serializable dictionary."""
+    return {"real": float(np.real(z)), "imag": float(np.imag(z))}
+
+
+def matrix_to_serializable(matrix):
+    """Convert a matrix with complex entries to serializable format."""
+    return [[complex_to_serializable(x) for x in row] for row in matrix]
+
+
 def simulate_quantum_circuit(circuit_ir):
-    input_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
-    c_ops = get_depolarizing_ops(1e-4, 2)
-    results_matrix = rep_to_evolution(circuit_ir, input_state, c_ops)
-    serializable_result = {
-        "ir": circuit_ir,
-        "input": input_state.full().tolist(),  # Convert to regular Python list
-        "result": {
-            "data": results_matrix.full().tolist(),  # Convert matrix to list
-            "dims": results_matrix.dims,  # Include dimensions
-            "shape": results_matrix.shape,
-        },
-    }
-    with open("log.txt", "a") as f:
-        f.write(f"\nCircuit IR: {circuit_ir}\n")
-        f.write(f"Input State Shape: {input_state.shape}\n")
-        f.write(f"Results Matrix Shape: {results_matrix.shape}\n")
-        f.write(f"Results Matrix:\n{results_matrix.full()}\n")
-        f.write("-" * 50 + "\n")
-    return serializable_result
+    try:
+        # Log the incoming circuit IR
+        with open("log.txt", "w") as f:
+            f.write(f"Received circuit_ir: {circuit_ir}\n")
+
+        input_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
+        input_state.dims = [[2, 2], [2, 2]]
+        c_ops = get_depolarizing_ops(1e-2, 2)
+        results_matrix = rep_to_evolution(circuit_ir, input_state, c_ops)
+
+        # Convert Qobj to serializable format
+        serializable_result = {
+            "ir": circuit_ir,
+            "input": matrix_to_serializable(input_state.full()),
+            "result": matrix_to_serializable(results_matrix.full()),
+        }
+
+        # Log the conversion
+        with open("log.txt", "a") as f:
+            f.write("\n=== Conversion to serializable format ===\n")
+            f.write(f"Input shape: {input_state.shape}\n")
+            f.write(f"Result shape: {results_matrix.shape}\n")
+            f.write(f"Serialized structure: {list(serializable_result.keys())}\n")
+            f.write("=" * 50 + "\n")
+
+        return serializable_result
+
+    except Exception as e:
+        with open("log.txt", "a") as f:
+            f.write(f"Error in simulation: {str(e)}\n")
+        raise
 
 
 if __name__ == "__main__":

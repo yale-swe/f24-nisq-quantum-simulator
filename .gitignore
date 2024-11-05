@@ -2,3 +2,4 @@
 *node_modules/
 frontend-interface/.next
 outputs.json
+*.vscode

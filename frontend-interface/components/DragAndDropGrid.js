@@ -257,14 +257,15 @@ export default function DragAndDropGrid() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const { data } = await response.json();
+            console.log(data)
 
             // setSimulationResults({
             //     result: data.result,
             // });
-            console.log(data.result)
-            console.log(data.ir)
-            console.log(data.input)
+            // console.log(data.result)
+            // console.log(data.ir)
+            // console.log(data.input)
 
         } catch (error) {
             console.error('Simulation failed:', error);
