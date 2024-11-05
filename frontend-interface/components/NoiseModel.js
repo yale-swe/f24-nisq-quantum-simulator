@@ -1,158 +1,159 @@
-'use client';
-
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-const math = require('mathjs'); // You can use Math.js for matrix operations
-
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 
 export default function NoiseModel() {
+    const [fileContent, setFileContent] = useState('');
+    const [modelMatrix, setModelMatrix] = useState(null);
+    const [status, setStatus] = useState('');
+
     const validateFileType = (file) => {
-        const validFileType = 'text/plain'; // MIME type for .txt files
-        return file.type === validFileType;
-    }
+        return file.type === 'text/plain';
+    };
 
     const loadMatrix = (fileData) => {
         let data = {
             dimensions: [0, 0, 0],
-            matrices: []
-        }
-        data.matrices = JSON.parse(fileData);
-        data.dimensions[0] = matrices.length
+            matrices: JSON.parse(fileData)
+        };
+        data.dimensions[0] = data.matrices.length;
+        return data.matrices;
+    };
 
-    }
-
-
-    const  validateNoiseModelLinAlg =(matrices)  => {
-        // Get the dimension of the matrices to construct the identity matrix
-        const dimension = matrices[0].size()[0]; // Assuming square matrices
+    const validateNoiseModelLinAlg = (matrices) => {
+        const dimension = matrices[0].length;
         const identity = math.identity(dimension);
-
-        // Sum up E_i * E_i^† for all matrices
-        let sum = math.zeros(dimension, dimension); // Initialize zero matrix
+        let sum = math.zeros(dimension, dimension);
 
         matrices.forEach(matrix => {
-            const conjugateTranspose = math.conj(math.transpose(matrix)); // E_i^†
-            const product = math.multiply(matrix, conjugateTranspose); // E_i * E_i^†
-            sum = math.add(sum, product); // Add to sum
+            const conjugateTranspose = math.conj(math.transpose(matrix));
+            const product = math.multiply(matrix, conjugateTranspose);
+            sum = math.add(sum, product);
         });
 
-        // Check if sum equals the identity matrix
         return math.deepEqual(sum, identity);
-    }
+    };
 
-
-    //ToDo: need to add a check for the dimensions of each matrix
-    const validateNoiseModelSyntax = (fileData) =>  {
-        // Check if fileData is a string
-        if (typeof fileData !== 'string') {
-            return false;
-        }
+    const validateNoiseModelSyntax = (fileData) => {
+        if (typeof fileData !== 'string') return false;
 
         try {
-            // Try parsing the string as JSON
             const matrices = JSON.parse(fileData);
+            if (!Array.isArray(matrices)) return false;
 
-            // Check if the parsed data is an array
-            if (!Array.isArray(matrices)) {
-                return false;
-            }
-
-            // Check each matrix in the array
             for (let matrix of matrices) {
-                // Ensure that each matrix is a 2D array (array of arrays)
-                if (!Array.isArray(matrix) || matrix.length == 0) {
-                    return false;
-                }
-
-                // Check that each row has exactly 4 elements
+                if (!Array.isArray(matrix) || matrix.length === 0) return false;
                 for (let row of matrix) {
-                    if (!Array.isArray(row) || row.length == 0) {
-                        return false;
-                    }
-
-                    // Ensure all elements in the row are numbers
-                    for (let element of row) {
-                        if (typeof element !== 'number') {
-                            return false;
-                        }
-                    }
+                    if (!Array.isArray(row) || row.length === 0) return false;
+                    if (!row.every(element => typeof element === 'number')) return false;
                 }
             }
-
-            // If all checks pass, return true
             return true;
         } catch (e) {
-            // If parsing fails, the file data is not valid JSON
             return false;
         }
-    }
+    };
 
-
-
-
-    let noiseModelString = "";
-    //function for flexible reading of files of any type
-    const readBlob = () =>{
+    const readBlob = () => {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
-        const status = document.getElementById('status');
-        const fileContent = document.getElementById('fileContent');
 
         if (file) {
-
-            // Create a Blob from the selected file
-            const blob = new Blob([file], { type: file.type });
-
-            if (file.type != ".txt") {
-                //in case we want to only except .npy files for noise models
-                status.textContent = 'Invalid File Format (.txt required)';
+            if (!validateFileType(file)) {
+                setStatus('Invalid File Format (.txt required)');
+                return;
             }
 
-
-            else {
-                // Use FileReader to read the Blob as text
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    //file processing protocol: Store data, validate noise model, setNoiseModel 
-                    const fileData = e.target.result;
-                    validateNoiseModel(fileData);
-                    status.textContent = 'Noise Model Read Succesfully';
-                    processNoiseModel(fileData); // Pass the file data to setNoiseModel function
-                };
-                reader.onerror = function (e) {
-                    status.textContent = 'Error reading file!';
-                };
-
-                // Read the Blob's contents as text
-                reader.readAsText(blob);
-            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const fileData = e.target.result;
+                setStatus('Noise Model Read Successfully');
+                processNoiseModel(fileData);
+            };
+            reader.onerror = () => {
+                setStatus('Error reading file!');
+            };
+            reader.readAsText(file);
         } else {
-            status.textContent = 'No file selected!';
+            setStatus('No file selected!');
         }
-    }
+    };
 
-
-    //stores noise model data in a string (for now) and displays it to the webpage. 
     const processNoiseModel = (fileData) => {
-        noiseModelString = fileData;
-        fileContent.textContent = fileData;
-        console.log('Noise model string read:', noiseModelString); // Just to verify it's working
+        setFileContent(fileData);
 
         if (!validateNoiseModelSyntax(fileData)) {
-            console.log("Error in Noise Model Syntax")
+            console.error("Error in Noise Model Syntax");
+            return;
         }
 
-        modelMatrix = loadMatrix(noieModelString);
+        const parsedMatrix = loadMatrix(fileData);
+        setModelMatrix(parsedMatrix);
 
-        if (!validateNoiseModelLinAlg(modelMatrix)) {
-            console.log("Linear Algebra Error in Noise Model")
+        if (!validateNoiseModelLinAlg(parsedMatrix)) {
+            console.error("Linear Algebra Error in Noise Model");
+            return;
         }
-    }
+    };
 
+    // useEffect hook to post data to the backend API when modelMatrix updates
+    useEffect(() => {
+        if (modelMatrix) {
+            saveModel(modelMatrix);
+        }
+    }, [modelMatrix]);
 
+    const saveModel = async (matrix) => {
+        console.log("Posting Matrix Data:", matrix);
+
+        try {
+            const response = await fetch('/api/saveOutputs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ outputs: matrix }), // Send matrix data
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log(data.message);
+                setStatus(data.message);
+            } else {
+                console.error(data.message);
+                setStatus('Failed to save outputs');
+            }
+        } catch (error) {
+            console.error('Error posting matrix data:', error);
+            setStatus('Error posting matrix data');
+        }
+    };
+
+    return (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            textAlign: 'center'
+        }}>
+            <input type="file" id="fileInput" style={{ marginBottom: '10px' }} />
+            <button
+                onClick={readBlob}
+                style={{
+                    padding: '10px 20px',
+                    fontSize: '16px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    marginBottom: '10px'
+                }}
+            >
+                Load Noise Model
+            </button>
+            <p>{status}</p>
+            <pre>{fileContent}</pre>
+        </div>
+    );
 }
