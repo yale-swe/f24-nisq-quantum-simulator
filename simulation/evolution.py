@@ -1,6 +1,8 @@
 import qiskit
 import qutip as qt
 import numpy as np
+import json
+import os
 
 """
 Quantum Circuit Evolution with Intermediate Representation
@@ -44,11 +46,8 @@ parallel operations in circuits of any size.
 """
 
 # start of fetch json file code
-import json
-import os
-
 def fetch_outputs():
-    # Get the absolute path to the root directory
+    # path to the root directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.abspath(os.path.join(script_dir, '..'))
     # outputs.json is now in the root directory
