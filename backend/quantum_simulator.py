@@ -10,6 +10,8 @@ import json
 import os
 import itertools
 
+from visualizations.Density_Plot import create_density_matrix_plot
+
 """
 Quantum Circuit Evolution with Intermediate Representation
 
@@ -247,30 +249,21 @@ def matrix_to_serializable(matrix):
 
 def simulate_quantum_circuit(circuit_ir):
     try:
-        # Log the incoming circuit IR
-        with open("log.txt", "w") as f:
-            f.write(f"Received circuit_ir: {circuit_ir}\n")
-
         input_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
         input_state.dims = [[2, 2], [2, 2]]
         c_ops = get_depolarizing_ops(1e-2, 2)
         results_matrix = rep_to_evolution(circuit_ir, input_state, c_ops)
-
-        # Convert Qobj to serializable format
+        
+        # Use the existing visualization code
+        plot_base64 = create_density_matrix_plot(results_matrix.full())
+        
         serializable_result = {
             "ir": circuit_ir,
             "input": matrix_to_serializable(input_state.full()),
             "result": matrix_to_serializable(results_matrix.full()),
+            "density_matrix": plot_base64
         }
-
-        # Log the conversion
-        with open("log.txt", "a") as f:
-            f.write("\n=== Conversion to serializable format ===\n")
-            f.write(f"Input shape: {input_state.shape}\n")
-            f.write(f"Result shape: {results_matrix.shape}\n")
-            f.write(f"Serialized structure: {list(serializable_result.keys())}\n")
-            f.write("=" * 50 + "\n")
-
+        
         return serializable_result
 
     except Exception as e:

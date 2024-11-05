@@ -11,6 +11,8 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { useEffect } from 'react';
 
+import DensityPlot from './DensityPlot';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -243,35 +245,21 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
+    try {
         const ir = convertGridToIR();
-        try {
-            const response = await fetch('/api/simulate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ circuit_ir: ir })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const { data } = await response.json();
-            console.log(data)
-
-            // setSimulationResults({
-            //     result: data.result,
-            // });
-            // console.log(data.result)
-            // console.log(data.ir)
-            // console.log(data.input)
-
-        } catch (error) {
-            console.error('Simulation failed:', error);
-            alert('Simulation failed. Please try again.');
+        const response = await fetch('/api/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ circuit_ir: ir }),
+        });
+        const data = await response.json();
+        if (data.plotData) {  // Make sure backend sends plotData
+            setSimulationResults(data.plotData);
         }
-    };
+    } catch (error) {
+        console.error('Error:', error);
+    }
+};
 
     // Rest of the component remains the same...
     return (
@@ -403,6 +391,9 @@ export default function DragAndDropGrid() {
                     Generate Results
                 </button>
             </div>
+            {simulationResults && (
+  <DensityPlot densityMatrix={simulationResults.densityMatrix} />
+)}
         </DragDropContext>
     </div>
 );
