@@ -61,8 +61,8 @@ export async function POST(request) {
         return NextResponse.json({
     message: 'Simulation completed successfully',
     data: {
-        densityMatrix: simulationResult.density_matrix, // Assuming this is the key from Python
-        // other data...
+        densityMatrix: simulationResult.density_matrix,
+        plotImage: simulationResult.plot_image
     }
 }, { status: 200 });
 

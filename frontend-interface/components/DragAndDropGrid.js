@@ -392,8 +392,8 @@ export default function DragAndDropGrid() {
                 </button>
             </div>
             {simulationResults && (
-  <DensityPlot densityMatrix={simulationResults.densityMatrix} />
-)}
+            <DensityPlot plotImageData={simulationResults.plotImage} />
+        )}
         </DragDropContext>
     </div>
 );
