@@ -252,10 +252,23 @@ export default function DragAndDropGrid() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ circuit_ir: ir }),
         });
+        
         const result = await response.json();
-        if (result.data && result.data.plotImage) {  // Check for correct property path
-            setSimulationResults(result.data);  // Pass the whole data object
+        
+        // Add error handling and logging
+        if (!response.ok) {
+            console.error('Simulation failed:', result.message);
+            return;
         }
+        
+        if (!result.data?.plotImage) {
+            console.error('No plot image in response');
+            return;
+        }
+
+        console.log('Received plot data:', !!result.data.plotImage); // Debug log
+        setSimulationResults(result.data);
+        
     } catch (error) {
         console.error('Error:', error);
     }
@@ -268,7 +281,7 @@ export default function DragAndDropGrid() {
             {/* Icons section */}
             <div style={{ padding: '20px' }}>
                 <h2 style={{ color: 'black' }}>Available Gates</h2>
-                <Droppable droppableId="icons" direction="horizontal" isDropDisabled={false}>
+                <Droppable droppableId="icons" direction="horizontal">
                     {(provided) => (
                         <div ref={provided.innerRef} {...provided.droppableProps} style={{ display: 'flex', gap: '10px' }}>
                             {icons.map((icon, index) => (
@@ -304,7 +317,7 @@ export default function DragAndDropGrid() {
                         }} />
                     ))}
 
-                    {/* Invisible grid for gate placement */}
+                    {/* Grid for gate placement */}
                     <div style={{
                         display: 'grid',
                         gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
@@ -321,7 +334,7 @@ export default function DragAndDropGrid() {
                                 const cellData = grid[rowIndex][colIndex];
                                 const isCNOT = cellData.gate && cellData.gate.type.startsWith('CNOT') && rowIndex === 0;
                                 return (
-                                    <Droppable droppableId={cellId} key={cellId}>
+                                    <Droppable key={cellId} droppableId={cellId}>
                                         {(provided) => (
                                             <div ref={provided.innerRef} {...provided.droppableProps}
                                                 style={{
@@ -392,8 +405,8 @@ export default function DragAndDropGrid() {
                 </button>
             </div>
             {simulationResults && (
-    <DensityPlot plotImageData={simulationResults.plotImage} />
-)}
+                <DensityPlot plotImageData={simulationResults.plotImage} />
+            )}
         </DragDropContext>
     </div>
 );
