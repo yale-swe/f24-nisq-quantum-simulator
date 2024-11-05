@@ -275,151 +275,108 @@ export default function DragAndDropGrid() {
 
     // Rest of the component remains the same...
     return (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
-            <DragDropContext onDragEnd={onDragEnd}>
-                {/* Icons section */}
-                <div style={{ padding: '20px' }}>
-                    <h2 style={{ color: 'black' }}>Available Icons</h2>
-                    <Droppable
-                        droppableId="icons"
-                        direction="horizontal"
-                        isDropDisabled={false}
-                    >
-                        {(provided) => (
-                            <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                style={{ display: 'flex', gap: '10px' }}
-                            >
-                                {icons.map((icon, index) => (
-                                    <Draggable key={icon.id} draggableId={icon.id} index={index}>
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                style={{
-                                                    cursor: 'pointer',
-                                                    ...provided.draggableProps.style,
-                                                }}
-                                            >
-                                                <Image
-                                                    src={icon.content}
-                                                    width={50}
-                                                    height={50}
-                                                    alt={icon.type}
-                                                />
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </div>
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+        <DragDropContext onDragEnd={onDragEnd}>
+            {/* Icons section */}
+            <div style={{ padding: '20px' }}>
+                <h2 style={{ color: 'black' }}>Available Gates</h2>
+                <Droppable droppableId="icons" direction="horizontal" isDropDisabled={false}>
+                    {(provided) => (
+                        <div ref={provided.innerRef} {...provided.droppableProps} style={{ display: 'flex', gap: '10px' }}>
+                            {icons.map((icon, index) => (
+                                <Draggable key={icon.id} draggableId={icon.id} index={index}>
+                                    {(provided) => (
+                                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                            style={{ cursor: 'pointer', ...provided.draggableProps.style }}>
+                                            <Image src={icon.content} width={50} height={50} alt={icon.type} />
+                                        </div>
+                                    )}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </div>
 
-                {/* Grid section */}
-                <div style={{ padding: '20px' }}>
-                    <h2 style={{ color: 'black' }}>Grid</h2>
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
-                            gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
-                            position: 'relative',
-                        }}
-                    >
+            {/* Circuit section */}
+            <div style={{ padding: '20px' }}>
+                <h2 style={{ color: 'black' }}>Quantum Circuit</h2>
+                <div style={{ position: 'relative', width: `${GRID_COLUMNS * 60}px`, height: `${GRID_ROWS * 60}px` }}>
+                    {/* Horizontal wires */}
+                    {Array.from({ length: GRID_ROWS }).map((_, rowIndex) => (
+                        <div key={`wire-${rowIndex}`} style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: `${30 + rowIndex * 50}px`,
+                            width: '100%',
+                            height: '2px',
+                            backgroundColor: 'black',
+                            zIndex: 0
+                        }} />
+                    ))}
+
+                    {/* Invisible grid for gate placement */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
+                        gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%'
+                    }}>
                         {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
                             Array.from({ length: GRID_COLUMNS }).map((_, colIndex) => {
                                 const cellId = `cell-${rowIndex}-${colIndex}`;
                                 const cellData = grid[rowIndex][colIndex];
-                                const isCNOT =
-                                    cellData.gate &&
-                                    cellData.gate.type.startsWith('CNOT') &&
-                                    rowIndex === 0;
+                                const isCNOT = cellData.gate && cellData.gate.type.startsWith('CNOT') && rowIndex === 0;
                                 return (
                                     <Droppable droppableId={cellId} key={cellId}>
                                         {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.droppableProps}
+                                            <div ref={provided.innerRef} {...provided.droppableProps}
                                                 style={{
                                                     width: '60px',
                                                     height: '60px',
-                                                    borderBottom:
-                                                        rowIndex < GRID_ROWS - 1 ? '1px solid black' : 'none',
-                                                    borderRight:
-                                                        colIndex < GRID_COLUMNS - 1 ? '1px solid black' : 'none',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    backgroundColor: '#fff',
-                                                    gridRowStart: rowIndex + 1,
-                                                    gridColumnStart: colIndex + 1,
+                                                    backgroundColor: 'transparent',
                                                     position: 'relative',
                                                     overflow: 'visible',
-                                                }}
-                                            >
-                                                {cellData.gate ? (
-                                                    isCNOT ? (
-                                                        <Draggable
-                                                            draggableId={cellData.gate.id}
-                                                            index={0}
-                                                        >
-                                                            {(provided) => (
-                                                                <div
-                                                                    ref={provided.innerRef}
-                                                                    {...provided.draggableProps}
-                                                                    {...provided.dragHandleProps}
-                                                                    style={{
-                                                                        ...provided.draggableProps.style,
-                                                                        cursor: 'pointer',
-                                                                        position: 'absolute',
-                                                                        top: 0,
-                                                                        left: 0,
-                                                                        width: '60px',
-                                                                        height: '120px',
-                                                                        gridRow: 'span 2',
-                                                                        zIndex: 1,
-                                                                    }}
-                                                                >
-                                                                    <Image
-                                                                        src={cellData.gate.content}
-                                                                        layout="fixed"
-                                                                        width={60}
-                                                                        height={120}
-                                                                        alt={cellData.gate.type}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </Draggable>
-                                                    ) : cellData.gate.type !== 'CNOT' ? (
-                                                        <Draggable
-                                                            draggableId={cellData.gate.id}
-                                                            index={0}
-                                                        >
-                                                            {(provided) => (
-                                                                <div
-                                                                    ref={provided.innerRef}
-                                                                    {...provided.draggableProps}
-                                                                    {...provided.dragHandleProps}
-                                                                    style={{
-                                                                        ...provided.draggableProps.style,
-                                                                        cursor: 'pointer',
-                                                                    }}
-                                                                >
-                                                                    <Image
-                                                                        src={cellData.gate.content}
-                                                                        width={50}
-                                                                        height={50}
-                                                                        alt={cellData.gate.type}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </Draggable>
-                                                    ) : null
-                                                ) : null}
+                                                }}>
+                                                {cellData.gate && (isCNOT ? (
+                                                    <Draggable draggableId={cellData.gate.id} index={0}>
+                                                        {(provided) => (
+                                                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                                style={{
+                                                                    ...provided.draggableProps.style,
+                                                                    cursor: 'pointer',
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: '60px',
+                                                                    height: '120px',
+                                                                    zIndex: 1,
+                                                                }}>
+                                                                <Image src={cellData.gate.content} layout="fixed" width={60} height={120} alt={cellData.gate.type} />
+                                                            </div>
+                                                        )}
+                                                    </Draggable>
+                                                ) : cellData.gate.type !== 'CNOT' && (
+                                                    <Draggable draggableId={cellData.gate.id} index={0}>
+                                                        {(provided) => (
+                                                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                                style={{
+                                                                    ...provided.draggableProps.style,
+                                                                    cursor: 'pointer',
+                                                                }}>
+                                                                <Image src={cellData.gate.content} width={50} height={50} alt={cellData.gate.type} />
+                                                            </div>
+                                                        )}
+                                                    </Draggable>
+                                                ))}
                                                 {provided.placeholder}
                                             </div>
                                         )}
@@ -429,34 +386,34 @@ export default function DragAndDropGrid() {
                         )}
                     </div>
                 </div>
+            </div>
 
-                {/* Output Values section */}
-                <div style={{ padding: '20px', color: 'black' }}>
-                    <h2 style={{ color: 'black' }}>Row Outputs</h2>
-                    {grid.map((_, rowIndex) => (
-                        <div key={rowIndex}>
-                            <strong>Row {rowIndex + 1} Output:</strong> [{getRowValues(rowIndex).join(', ')}]
-                        </div>
-                    ))}
-                </div>
-                {/* Simulation Button and Results */}
-                <div style={{ padding: '20px' }}>
-                    <button
-                        onClick={handleSimulate}
-                        style={{
-                            padding: '10px 20px',
-                            margin: '20px 0',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Generate Results
-                    </button>
-                </div>
-            </DragDropContext>
-        </div>
-    );
+            {/* Output Values section */}
+            <div style={{ padding: '20px', color: 'black' }}>
+                <h2>Row Outputs</h2>
+                {grid.map((_, rowIndex) => (
+                    <div key={rowIndex}>
+                        <strong>Row {rowIndex + 1} Output:</strong> [{getRowValues(rowIndex).join(', ')}]
+                    </div>
+                ))}
+            </div>
+
+            {/* Simulation Button */}
+            <div style={{ padding: '20px' }}>
+                <button onClick={handleSimulate}
+                    style={{
+                        padding: '10px 20px',
+                        margin: '20px 0',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer'
+                    }}>
+                    Generate Results
+                </button>
+            </div>
+        </DragDropContext>
+    </div>
+);
 }
