@@ -252,23 +252,13 @@ export default function DragAndDropGrid() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ circuit_ir: ir }),
         });
-        
         const result = await response.json();
-        
-        // Add error handling and logging
-        if (!response.ok) {
-            console.error('Simulation failed:', result.message);
-            return;
+        console.log("Full result:", result);
+        console.log("Plot data exists:", !!result.data?.plotImage);
+        if (result.data && result.data.plotImage) {
+            setSimulationResults(result.data);
+            console.log("State updated with plot data");
         }
-        
-        if (!result.data?.plotImage) {
-            console.error('No plot image in response');
-            return;
-        }
-
-        console.log('Received plot data:', !!result.data.plotImage); // Debug log
-        setSimulationResults(result.data);
-        
     } catch (error) {
         console.error('Error:', error);
     }
@@ -404,9 +394,7 @@ export default function DragAndDropGrid() {
                     Generate Results
                 </button>
             </div>
-            {simulationResults && (
-                <DensityPlot plotImageData={simulationResults.plotImage} />
-            )}
+            <DensityPlot plotImageData={simulationResults?.plotImage} />
         </DragDropContext>
     </div>
 );
