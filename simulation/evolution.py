@@ -1,5 +1,5 @@
 import qiskit
-
+import itertools
 import qutip as qt
 import numpy as np
 import json
@@ -273,21 +273,23 @@ def rep_to_evolution(circuit_rep, input_state, c_ops):
             )
 
     return current_state
+
+
 def get_depolarizing_ops(p, n):
     single_qubit_ops = [
         np.sqrt(1 - p) * I,
         np.sqrt(p / 3) * X,
         np.sqrt(p / 3) * Y,
-        np.sqrt(p / 3) * Z
+        np.sqrt(p / 3) * Z,
     ]
-    
+
     c_ops = [qt.tensor(*ops) for ops in itertools.product(single_qubit_ops, repeat=n)]
     return c_ops
 
+
 def simulate(circuit_ir):
-	input_state = qt.basis(4,0) * qt.basis(4,0).dag()
-	c_ops = get_depolarizing_ops(1e-4, 2)
+    input_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
+    c_ops = get_depolarizing_ops(1e-4, 2)
     results_matrix = rep_to_evolution(circuit_ir, input_state, c_ops)
 
     return results_matrix
-
