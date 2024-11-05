@@ -127,6 +127,7 @@ export default function NoiseModel() {
         }
     };
 
+
     return (
         <div style={{
             display: 'flex',
@@ -136,22 +137,50 @@ export default function NoiseModel() {
             minHeight: '100vh',
             textAlign: 'center'
         }}>
-            <input type="file" id="fileInput" style={{ marginBottom: '10px' }} />
-            <button
-                onClick={readBlob}
-                style={{
-                    padding: '10px 20px',
-                    fontSize: '16px',
+            <div style={{
+                backgroundColor: 'white',
+                padding: '10px 15px',
+                borderRadius: '5px',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                border: '1px solid #ddd',
+                display: 'inline-block',
+                textAlign: 'center',
+                marginBottom: '10px'
+            }}>
+                <label htmlFor="fileInput" style={{
+                    display: 'inline-block',
+                    padding: '8px 12px',
+                    fontSize: '14px',
                     backgroundColor: '#4CAF50',
                     color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
                     marginBottom: '10px'
-                }}
-            >
-                Load Noise Model
-            </button>
+                }}>
+                    Choose File
+                </label>
+                <input
+                    type="file"
+                    id="fileInput"
+                    style={{
+                        display: 'none' // Hides the default file input
+                    }}
+                />
+                <button
+                    onClick={readBlob}
+                    style={{
+                        padding: '5px 10px',
+                        fontSize: '14px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Load Noise Model
+                </button>
+            </div>
             <p>{status}</p>
             <pre>{fileContent}</pre>
         </div>
