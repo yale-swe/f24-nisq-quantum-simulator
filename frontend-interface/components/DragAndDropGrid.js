@@ -388,16 +388,6 @@ export default function DragAndDropGrid() {
                 </div>
             </div>
 
-            {/* Output Values section */}
-            <div style={{ padding: '20px', color: 'black' }}>
-                <h2>Row Outputs</h2>
-                {grid.map((_, rowIndex) => (
-                    <div key={rowIndex}>
-                        <strong>Row {rowIndex + 1} Output:</strong> [{getRowValues(rowIndex).join(', ')}]
-                    </div>
-                ))}
-            </div>
-
             {/* Simulation Button */}
             <div style={{ padding: '20px' }}>
                 <button onClick={handleSimulate}
