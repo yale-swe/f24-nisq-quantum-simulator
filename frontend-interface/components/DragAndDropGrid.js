@@ -245,18 +245,20 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
-  try {
-    const ir = convertGridToIR();
-    const response = await fetch('/api/simulate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ circuit_ir: ir }),
-    });
-    const data = await response.json();
-    setSimulationResults(data); // This now contains your density matrix
-  } catch (error) {
-    console.error('Error:', error);
-  }
+    try {
+        const ir = convertGridToIR();
+        const response = await fetch('/api/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ circuit_ir: ir }),
+        });
+        const data = await response.json();
+        if (data.plotData) {  // Make sure backend sends plotData
+            setSimulationResults(data.plotData);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
 };
 
     // Rest of the component remains the same...
