@@ -252,9 +252,9 @@ export default function DragAndDropGrid() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ circuit_ir: ir }),
         });
-        const data = await response.json();
-        if (data.plotData) {  // Make sure backend sends plotData
-            setSimulationResults(data.plotData);
+        const result = await response.json();
+        if (result.data && result.data.plotImage) {  // Check for correct property path
+            setSimulationResults(result.data);  // Pass the whole data object
         }
     } catch (error) {
         console.error('Error:', error);
@@ -392,8 +392,8 @@ export default function DragAndDropGrid() {
                 </button>
             </div>
             {simulationResults && (
-            <DensityPlot plotImageData={simulationResults.plotImage} />
-        )}
+    <DensityPlot plotImageData={simulationResults.plotImage} />
+)}
         </DragDropContext>
     </div>
 );

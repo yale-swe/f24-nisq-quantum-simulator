@@ -250,11 +250,11 @@ def matrix_to_serializable(matrix):
 def simulate_quantum_circuit(circuit_ir):
     # Initialize quantum state
     num_qubits = len(circuit_ir[0])  
-    initial_state = qt.basis([2] * num_qubits, [0] * num_qubits)
-    current_state = initial_state
+    initial_state = qt.basis(4, 0) * qt.basis(4,0).dag()
+    initial_state.dims = [[2,2], [2,2]]
+    c_ops = get_depolarizing_ops(1e-2, 2)
 
-    # Get final density matrix
-    final_state = current_state * current_state.dag()
+    final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
     
     # Convert Qobj to numpy array before plotting
     final_state_array = final_state.full()  # This converts Qobj to numpy array
