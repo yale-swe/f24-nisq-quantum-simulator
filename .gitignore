@@ -3,5 +3,4 @@
 frontend-interface/.next
 outputs.json
 *.vscode
-*__init__.py*
 *log.txt*
