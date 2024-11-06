@@ -249,40 +249,35 @@ def matrix_to_serializable(matrix):
 
 def simulate_quantum_circuit(circuit_ir):
     # Initialize quantum state
-    num_qubits = len(circuit_ir[0])  
-    initial_state = qt.basis(4, 0) * qt.basis(4,0).dag()
-    initial_state.dims = [[2,2], [2,2]]
+    num_qubits = len(circuit_ir[0])
+    initial_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
+    initial_state.dims = [[2, 2], [2, 2]]
     c_ops = get_depolarizing_ops(1e-2, 2)
 
     final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
-    
-    # Convert Qobj to numpy array before plotting
-    final_state_array = final_state.full()  # This converts Qobj to numpy array
-    
-    # Generate the density matrix plot
-    plt.figure(figsize=(8, 6))
-    create_density_matrix_plot(final_state_array)
-    
-    # Save plot to bytes buffer
+    final_state_array = final_state.full()
+
+    # Get the figure from create_density_matrix_plot
+    fig = create_density_matrix_plot(final_state_array)
+
+    # Save plot to bytes buffer ONLY ONCE
     buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    plt.close()  # Close the figure to free memory
-    
-    # Convert plot to base64
+    fig.savefig(buffer, format="png")
     buffer.seek(0)
-    plot_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    
-    return {
-        'plot_image': plot_base64
-    }
+    plot_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    plt.close(fig)  # Clean up the figure
+
+    return {"plot_image": plot_base64}
+
 
 # If running as main script (from API)
 if __name__ == "__main__":
     # Get circuit IR from command line argument
     circuit_ir = json.loads(sys.argv[1])
-    
+
     # Run simulation
     result = simulate_quantum_circuit(circuit_ir)
-    
+
     # Print result as JSON for API to capture
     print(json.dumps(result))
