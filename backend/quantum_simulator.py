@@ -10,6 +10,8 @@ import json
 import os
 import itertools
 
+from visualizations.Density_Plot import create_density_matrix_plot
+
 """
 Quantum Circuit Evolution with Intermediate Representation
 
@@ -246,52 +248,36 @@ def matrix_to_serializable(matrix):
 
 
 def simulate_quantum_circuit(circuit_ir):
-    try:
-        # Log the incoming circuit IR
-        with open("log.txt", "w") as f:
-            f.write(f"Received circuit_ir: {circuit_ir}\n")
+    # Initialize quantum state
+    num_qubits = len(circuit_ir[0])
+    initial_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
+    initial_state.dims = [[2, 2], [2, 2]]
+    c_ops = get_depolarizing_ops(1e-2, 2)
 
-        input_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
-        input_state.dims = [[2, 2], [2, 2]]
-        c_ops = get_depolarizing_ops(1e-2, 2)
-        results_matrix = rep_to_evolution(circuit_ir, input_state, c_ops)
+    final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
+    final_state_array = final_state.full()
 
-        # Convert Qobj to serializable format
-        serializable_result = {
-            "ir": circuit_ir,
-            "input": matrix_to_serializable(input_state.full()),
-            "result": matrix_to_serializable(results_matrix.full()),
-        }
+    # Get the figure from create_density_matrix_plot
+    fig = create_density_matrix_plot(final_state_array)
 
-        # Log the conversion
-        with open("log.txt", "a") as f:
-            f.write("\n=== Conversion to serializable format ===\n")
-            f.write(f"Input shape: {input_state.shape}\n")
-            f.write(f"Result shape: {results_matrix.shape}\n")
-            f.write(f"Serialized structure: {list(serializable_result.keys())}\n")
-            f.write("=" * 50 + "\n")
+    # Save plot to bytes buffer ONLY ONCE
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    buffer.seek(0)
+    plot_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-        return serializable_result
+    plt.close(fig)  # Clean up the figure
 
-    except Exception as e:
-        with open("log.txt", "a") as f:
-            f.write(f"Error in simulation: {str(e)}\n")
-        raise
+    return {"plot_image": plot_base64}
 
 
+# If running as main script (from API)
 if __name__ == "__main__":
-    # Get input circuit IR from command line argument
-    circuit_ir_json = sys.argv[1]
+    # Get circuit IR from command line argument
+    circuit_ir = json.loads(sys.argv[1])
 
-    try:
-        # Parse input JSON
-        circuit_ir = json.loads(circuit_ir_json)
+    # Run simulation
+    result = simulate_quantum_circuit(circuit_ir)
 
-        # Run simulation
-        result = simulate_quantum_circuit(circuit_ir)
-
-        # Print result as JSON (will be captured by Node.js)
-        print(json.dumps(result))
-
-    except Exception as e:
-        print(json.dumps({"error": str(e), "status": "error"}))
+    # Print result as JSON for API to capture
+    print(json.dumps(result))

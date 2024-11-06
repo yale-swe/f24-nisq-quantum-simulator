@@ -11,6 +11,8 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { useEffect } from 'react';
 
+import DensityPlot from './DensityPlot';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -18,6 +20,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Updated icons list with assigned values
 const initialIcons = [
     { id: uuidv4(), content: '/icons/CNOT.svg', type: 'CNOT', value: 1 },
+    { id: uuidv4(), content: '/icons/CNOT_down.svg', type: 'CNOT', value: 1 },
     { id: uuidv4(), content: '/icons/H_Gate.svg', type: 'H_Gate', value: 2 },
     { id: uuidv4(), content: '/icons/X_Gate.svg', type: 'X_Gate', value: 2 },
     { id: uuidv4(), content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 3 },
@@ -243,177 +246,182 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
-        const ir = convertGridToIR();
         try {
+            const ir = convertGridToIR();
             const response = await fetch('/api/simulate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ circuit_ir: ir })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ circuit_ir: ir }),
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            console.log("Full result:", result);
+            console.log("Plot data exists:", !!result.data?.plotImage);
+            if (result.data && result.data.plotImage) {
+                setSimulationResults(result.data);
+                console.log("State updated with plot data");
             }
-
-            const { data } = await response.json();
-            console.log(data)
-
-            // setSimulationResults({
-            //     result: data.result,
-            // });
-            // console.log(data.result)
-            // console.log(data.ir)
-            // console.log(data.input)
-
         } catch (error) {
-            console.error('Simulation failed:', error);
-            alert('Simulation failed. Please try again.');
+            console.error('Error:', error);
         }
     };
 
-    // Rest of the component remains the same...
     return (
-    <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-            {/* Icons section */}
-            <div style={{ padding: '20px' }}>
-                <h2 style={{ color: 'black' }}>Available Gates</h2>
-                <Droppable droppableId="icons" direction="horizontal" isDropDisabled={false}>
-                    {(provided) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps} style={{ display: 'flex', gap: '10px' }}>
-                            {icons.map((icon, index) => (
-                                <Draggable key={icon.id} draggableId={icon.id} index={index}>
-                                    {(provided) => (
-                                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                                            style={{ cursor: 'pointer', ...provided.draggableProps.style }}>
-                                            <Image src={icon.content} width={50} height={50} alt={icon.type} />
-                                        </div>
-                                    )}
-                                </Draggable>
-                            ))}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+            {/* Title Section */}
+            <div style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                borderBottom: '2px solid #eaeaea',
+                background: 'linear-gradient(to right, #f8f9fa, #e9ecef)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <h1 style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    color: '#2c3e50',
+                    margin: 0,
+                    letterSpacing: '0.5px'
+                }}>
+                    NISQ Quantum Simulator
+                </h1>
+                <p style={{
+                    fontSize: '1.1rem',
+                    color: '#6c757d',
+                    marginTop: '10px'
+                }}>
+                    Design and simulate quantum circuits in a noisy intermediate-scale quantum environment
+                </p>
             </div>
 
-            {/* Circuit section */}
-            <div style={{ padding: '20px' }}>
-                <h2 style={{ color: 'black' }}>Quantum Circuit</h2>
-                <div style={{ position: 'relative', width: `${GRID_COLUMNS * 60}px`, height: `${GRID_ROWS * 60}px` }}>
-                    {/* Horizontal wires */}
-                    {Array.from({ length: GRID_ROWS }).map((_, rowIndex) => (
-                        <div key={`wire-${rowIndex}`} style={{
-                            position: 'absolute',
-                            left: 0,
-                            top: `${30 + rowIndex * 50}px`,
-                            width: '100%',
-                            height: '2px',
-                            backgroundColor: 'black',
-                            zIndex: 0
-                        }} />
-                    ))}
-
-                    {/* Invisible grid for gate placement */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
-                        gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%'
-                    }}>
-                        {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
-                            Array.from({ length: GRID_COLUMNS }).map((_, colIndex) => {
-                                const cellId = `cell-${rowIndex}-${colIndex}`;
-                                const cellData = grid[rowIndex][colIndex];
-                                const isCNOT = cellData.gate && cellData.gate.type.startsWith('CNOT') && rowIndex === 0;
-                                return (
-                                    <Droppable droppableId={cellId} key={cellId}>
+            <DragDropContext onDragEnd={onDragEnd}>
+                {/* Icons section */}
+                <div style={{ padding: '20px' }}>
+                    <h2 style={{ color: 'black' }}>Available Gates</h2>
+                    <Droppable droppableId="icons" direction="horizontal">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps} style={{ display: 'flex', gap: '10px' }}>
+                                {icons.map((icon, index) => (
+                                    <Draggable key={icon.id} draggableId={icon.id} index={index}>
                                         {(provided) => (
-                                            <div ref={provided.innerRef} {...provided.droppableProps}
-                                                style={{
-                                                    width: '60px',
-                                                    height: '60px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: 'transparent',
-                                                    position: 'relative',
-                                                    overflow: 'visible',
-                                                }}>
-                                                {cellData.gate && (isCNOT ? (
-                                                    <Draggable draggableId={cellData.gate.id} index={0}>
-                                                        {(provided) => (
-                                                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                                                                style={{
-                                                                    ...provided.draggableProps.style,
-                                                                    cursor: 'pointer',
-                                                                    position: 'absolute',
-                                                                    top: 0,
-                                                                    left: 0,
-                                                                    width: '60px',
-                                                                    height: '120px',
-                                                                    zIndex: 1,
-                                                                }}>
-                                                                <Image src={cellData.gate.content} layout="fixed" width={60} height={120} alt={cellData.gate.type} />
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                ) : cellData.gate.type !== 'CNOT' && (
-                                                    <Draggable draggableId={cellData.gate.id} index={0}>
-                                                        {(provided) => (
-                                                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                                                                style={{
-                                                                    ...provided.draggableProps.style,
-                                                                    cursor: 'pointer',
-                                                                }}>
-                                                                <Image src={cellData.gate.content} width={50} height={50} alt={cellData.gate.type} />
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
+                                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                style={{ cursor: 'pointer', ...provided.draggableProps.style }}>
+                                                <Image src={icon.content} width={50} height={50} alt={icon.type} />
                                             </div>
                                         )}
-                                    </Droppable>
-                                );
-                            })
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
                         )}
+                    </Droppable>
+                </div>
+
+                {/* Circuit section */}
+                <div style={{ padding: '20px' }}>
+                    <h2 style={{ color: 'black' }}>Quantum Circuit</h2>
+                    <div style={{ position: 'relative', width: `${GRID_COLUMNS * 60}px`, height: `${GRID_ROWS * 60}px` }}>
+                        {/* Horizontal wires */}
+                        {Array.from({ length: GRID_ROWS }).map((_, rowIndex) => (
+                            <div key={`wire-${rowIndex}`} style={{
+                                position: 'absolute',
+                                left: 0,
+                                top: `${30 + rowIndex * 50}px`,
+                                width: '100%',
+                                height: '2px',
+                                backgroundColor: 'black',
+                                zIndex: 0
+                            }} />
+                        ))}
+
+                        {/* Grid for gate placement */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateRows: `repeat(${GRID_ROWS}, 60px)`,
+                            gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%'
+                        }}>
+                            {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
+                                Array.from({ length: GRID_COLUMNS }).map((_, colIndex) => {
+                                    const cellId = `cell-${rowIndex}-${colIndex}`;
+                                    const cellData = grid[rowIndex][colIndex];
+                                    const isCNOT = cellData.gate && cellData.gate.type.startsWith('CNOT') && rowIndex === 0;
+                                    return (
+                                        <Droppable key={cellId} droppableId={cellId}>
+                                            {(provided) => (
+                                                <div ref={provided.innerRef} {...provided.droppableProps}
+                                                    style={{
+                                                        width: '60px',
+                                                        height: '60px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        backgroundColor: 'transparent',
+                                                        position: 'relative',
+                                                        overflow: 'visible',
+                                                    }}>
+                                                    {cellData.gate && (isCNOT ? (
+                                                        <Draggable draggableId={cellData.gate.id} index={0}>
+                                                            {(provided) => (
+                                                                <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                                    style={{
+                                                                        ...provided.draggableProps.style,
+                                                                        cursor: 'pointer',
+                                                                        position: 'absolute',
+                                                                        top: 0,
+                                                                        left: 0,
+                                                                        width: '60px',
+                                                                        height: '120px',
+                                                                        zIndex: 1,
+                                                                    }}>
+                                                                    <Image src={cellData.gate.content} layout="fixed" width={60} height={120} alt={cellData.gate.type} />
+                                                                </div>
+                                                            )}
+                                                        </Draggable>
+                                                    ) : cellData.gate.type !== 'CNOT' && (
+                                                        <Draggable draggableId={cellData.gate.id} index={0}>
+                                                            {(provided) => (
+                                                                <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                                    style={{
+                                                                        ...provided.draggableProps.style,
+                                                                        cursor: 'pointer',
+                                                                    }}>
+                                                                    <Image src={cellData.gate.content} width={50} height={50} alt={cellData.gate.type} />
+                                                                </div>
+                                                            )}
+                                                        </Draggable>
+                                                    ))}
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Output Values section */}
-            <div style={{ padding: '20px', color: 'black' }}>
-                <h2>Row Outputs</h2>
-                {grid.map((_, rowIndex) => (
-                    <div key={rowIndex}>
-                        <strong>Row {rowIndex + 1} Output:</strong> [{getRowValues(rowIndex).join(', ')}]
-                    </div>
-                ))}
-            </div>
-
-            {/* Simulation Button */}
-            <div style={{ padding: '20px' }}>
-                <button onClick={handleSimulate}
-                    style={{
-                        padding: '10px 20px',
-                        margin: '20px 0',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer'
-                    }}>
-                    Generate Results
-                </button>
-            </div>
-        </DragDropContext>
-    </div>
-);
+                {/* Simulation Button */}
+                <div style={{ padding: '20px' }}>
+                    <button onClick={handleSimulate}
+                        style={{
+                            padding: '10px 20px',
+                            margin: '20px 0',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer'
+                        }}>
+                        Generate Results
+                    </button>
+                </div>
+                <DensityPlot plotImageData={simulationResults?.plotImage} />
+            </DragDropContext>
+        </div>
+    );
 }
