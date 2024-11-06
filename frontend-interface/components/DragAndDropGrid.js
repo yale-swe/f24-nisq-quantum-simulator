@@ -264,9 +264,34 @@ export default function DragAndDropGrid() {
         }
     };
 
-    // Rest of the component remains the same...
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+            {/* Title Section */}
+            <div style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                borderBottom: '2px solid #eaeaea',
+                background: 'linear-gradient(to right, #f8f9fa, #e9ecef)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <h1 style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    color: '#2c3e50',
+                    margin: 0,
+                    letterSpacing: '0.5px'
+                }}>
+                    NISQ Quantum Simulator
+                </h1>
+                <p style={{
+                    fontSize: '1.1rem',
+                    color: '#6c757d',
+                    marginTop: '10px'
+                }}>
+                    Design and simulate quantum circuits in a noisy intermediate-scale quantum environment
+                </p>
+            </div>
+
             <DragDropContext onDragEnd={onDragEnd}>
                 {/* Icons section */}
                 <div style={{ padding: '20px' }}>
