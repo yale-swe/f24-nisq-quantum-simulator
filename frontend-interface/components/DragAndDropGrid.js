@@ -20,6 +20,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Updated icons list with assigned values
 const initialIcons = [
     { id: uuidv4(), content: '/icons/CNOT.svg', type: 'CNOT', value: 1 },
+    { id: uuidv4(), content: '/icons/CNOT_down.svg', type: 'CNOT', value: 1 },
     { id: uuidv4(), content: '/icons/H_Gate.svg', type: 'H_Gate', value: 2 },
     { id: uuidv4(), content: '/icons/X_Gate.svg', type: 'X_Gate', value: 2 },
     { id: uuidv4(), content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 3 },
