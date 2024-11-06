@@ -2,29 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LinearSegmentedColormap
-import io
-import base64
-
 
 def create_density_matrix_plot(quantum_matrix):
-    # Calculate probability densities (modulus squared)
-    prob_densities = np.abs(quantum_matrix) ** 2
+    # Calculate magnitude and phase of each element in the density matrix
+    magnitudes = np.abs(quantum_matrix)
+    phases = np.angle(quantum_matrix)
 
-    # Map the probabilities to the range 0, π, 2π
-    max_density = prob_densities.max()  # Find max density for normalization
-    normalized_heights = np.interp(prob_densities, (0, max_density), (0, 2 * np.pi))
+    # Create a custom colormap: blue for positive phases, red for negative
+    colors = [(0, 0, 1), (1, 1, 1), (1, 0, 0)]  # Blue to white to red
+    nodes = [0.0, 0.5, 1.0]  # Mapping for -π, 0, π, adjusted to the [0, 1] interval
+    custom_cmap = LinearSegmentedColormap.from_list("blue_white_red", list(zip(nodes, colors)))
 
-    # Set up the custom colormap
-    colors = [(1, 0, 0), (0, 0, 1), (1, 0, 0)]  # Red to blue to red
-    nodes = [0.0, 0.5, 1.0]  # Positions for 0, π, and 2π
-    custom_cmap = LinearSegmentedColormap.from_list(
-        "red_blue_red", list(zip(nodes, colors))
-    )
-
-    # Normalize the height values for color mapping
-    norm_heights = normalized_heights.ravel() / (
-        2 * np.pi
-    )  # Scale heights to [0, 1] for colormap
+    # Flatten data for easy handling in the plot
+    magnitudes_flat = magnitudes.ravel()
+    phases_flat = phases.ravel()
+    normalized_phases = (phases_flat + np.pi) / (2 * np.pi)  # Normalize phases to [0, 1]
+    colors = custom_cmap(normalized_phases)  # Apply colormap to normalized phases
 
     # Set up the 3D bar plot
     fig = plt.figure()
@@ -40,19 +33,21 @@ def create_density_matrix_plot(quantum_matrix):
 
     # Define bar sizes
     dx = dy = 0.5  # Width and depth of each bar
-    dz = normalized_heights.ravel()  # Height of each bar
+    dz = magnitudes_flat  # Height corresponds to magnitude of each element
 
-    # Plot 3D bars with custom colors
-    colors = custom_cmap(norm_heights)
+    # Plot 3D bars with colors based on phase
     ax.bar3d(x_pos, y_pos, z_pos, dx, dy, dz, color=colors, shade=True)
 
     # Set axis labels and limits
-    ax.set_xticks([0, 1])
-    ax.set_yticks([0, 1])
-    ax.set_xticklabels(["Column 1", "Column 2"])
-    ax.set_yticklabels(["Row 1", "Row 2"])
-    ax.set_zlim(0, 2 * np.pi)
-    ax.set_zlabel("Probability Density (0 to 2π)")
+    ax.set_xticks([0, 1, 2, 3])
+    ax.set_yticks([0, 1, 2, 3])
+    ax.set_xticklabels(["|00⟩", "|01⟩", "|10⟩", "|11⟩"])
+    ax.set_yticklabels(["|00⟩", "|01⟩", "|10⟩", "|11⟩"])
+    ax.set_zlabel("Magnitude")
 
-    # Return the figure instead of saving it
+    # Display the color bar to show phase mapping
+    mappable = plt.cm.ScalarMappable(cmap=custom_cmap)
+    mappable.set_array(phases)
+    plt.colorbar(mappable, ax=ax, orientation='vertical', label="Phase (radians)")
+
     return fig
