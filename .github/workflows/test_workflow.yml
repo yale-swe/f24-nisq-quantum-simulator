@@ -47,6 +47,6 @@ jobs:
 
     - name: Run Jest Tests
       run: |
-        npx jest "Noise Model/__tests__/validateFileType.test.js"
-        npx jest "Noise Model/__tests__/validateNoiseModelLinAlg.test.js"
-        npx jest "Noise Model/__tests__/validateNoiseModelSyntax.test.js"
+        npx jest "frontend-interface/components/__tests__/DensityPlot.test.js"
+        npx jest "frontend-interface/components/__tests__/NoiseModel.test.js"
+
