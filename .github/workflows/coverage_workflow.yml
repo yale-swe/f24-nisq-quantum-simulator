@@ -1,13 +1,12 @@
-name: Code Coverage
+name: Code Coverage Summary
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - '**'  # Runs on all branches
 
 jobs:
-  coverage:
+  coverage-summary:
     runs-on: ubuntu-latest
     
     steps:
@@ -27,22 +26,18 @@ jobs:
       run: |
         pytest --cov=./ --cov-report=xml
         
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+    - name: Code Coverage Summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
       with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: true
-        verbose: true
+        filename: coverage.xml
+        badge: true
+        format: markdown
+        output: both
+        thresholds: '60 80'
         
-    - name: Generate coverage report
-      run: |
-        pytest --cov=./ --cov-report=html
-        
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
       with:
-        name: code-coverage-report
-        path: htmlcov/
-        retention-days: 21
+        recreate: true
+        path: code-coverage-results.md
