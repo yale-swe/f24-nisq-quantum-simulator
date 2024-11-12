@@ -1,5 +1,5 @@
 import unittest
-from evolution import *
+from quantum_simulator import *
 
 """
 Quantum Circuit Evolution Unit Tests
