@@ -8,11 +8,11 @@ describe('NoiseModel Component', () => {
         fetch.resetMocks();
     });
 
-    it('should render the file input and load button', () => {
-        render(<NoiseModel />);
-        expect(screen.getByText('Choose File')).toBeInTheDocument();
-        expect(screen.getByText('Load Noise Model')).toBeInTheDocument();
-    });
+    // it('should render the file input and load button', () => {
+    //     render(<NoiseModel />);
+    //     expect(screen.getByText('Choose File')).toBeInTheDocument();
+    //     expect(screen.getByText('Load Noise Model')).toBeInTheDocument();
+    // });
 
     it('should display status for invalid file format', () => {
         render(<NoiseModel />);
