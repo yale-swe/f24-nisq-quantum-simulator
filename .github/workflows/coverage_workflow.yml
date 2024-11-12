@@ -1,0 +1,48 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=./ --cov-report=xml
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
+        
+    - name: Generate coverage report
+      run: |
+        pytest --cov=./ --cov-report=html
+        
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-report
+        path: htmlcov/
+        retention-days: 21
