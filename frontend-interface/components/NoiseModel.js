@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as math from 'mathjs';
 
 export default function NoiseModel() {
     const [fileContent, setFileContent] = useState('');
