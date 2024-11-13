@@ -24,9 +24,14 @@ jobs:
     - name: Run tests with coverage
       run: |
         python -c "import sys; print('Python path:', sys.path)"
-        PYTHONPATH=$PYTHONPATH:${{ github.workspace }} pytest --cov=./ --cov-report=xml
+        cd backend  # Change to backend directory
+        PYTHONPATH=${{ github.workspace }}/backend pytest --cov=./ --cov-report=xml --import-mode=append
       env:
-        PYTHONPATH: ${{ github.workspace }}
+        PYTHONPATH: ${{ github.workspace }}/backend
+        
+    - name: Move coverage report
+      run: |
+        mv backend/coverage.xml ./coverage.xml
         
     - name: Code Coverage Summary
       uses: irongut/CodeCoverageSummary@v1.3.0
