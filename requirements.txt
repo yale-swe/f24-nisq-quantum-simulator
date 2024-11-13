@@ -1,12 +1,15 @@
-numpy==1.24.3
+# Core quantum computing packages with compatible versions
+numpy==1.23.5  # Rolling back to a more stable version for QuTiP
+qutip==5.0.1   # Using an older version known to work with numpy 1.23.5
 matplotlib==3.7.1
 plotly==5.14.1
-qutip==5.0.1
 qiskit==1.2.2
-ipykernel==6.23.1  # For Jupyter notebook support if needed
-jupyter==1.0.0     # For interactive development
 
-# testing
+# Development tools
+ipykernel==6.23.1
+jupyter==1.0.0
+
+# Testing
 pytest==8.0.0
 pytest-cov==4.1.0
 coverage==7.4.1
