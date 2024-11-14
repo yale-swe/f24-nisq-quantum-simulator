@@ -57,14 +57,15 @@ export async function POST(request) {
         });
 
         console.log('Quantum simulation completed successfully');
+        console.log(simulationResult.density_matrix);
 
         return NextResponse.json({
-    message: 'Simulation completed successfully',
-    data: {
-        densityMatrix: simulationResult.density_matrix,
-        plotImage: simulationResult.plot_image
-    }
-}, { status: 200 });
+            message: 'Simulation completed successfully',
+            data: {
+                densityMatrix: simulationResult.density_matrix,
+                plotImage: simulationResult.plot_image
+            }
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error during quantum simulation:', error);
