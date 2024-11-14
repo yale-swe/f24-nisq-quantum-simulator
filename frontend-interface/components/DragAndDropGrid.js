@@ -273,7 +273,7 @@ export default function DragAndDropGrid() {
 
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
-            {/* Title Section */}
+            {/* Title */}
             <div style={{
                 padding: '40px 20px',
                 textAlign: 'center',
