@@ -25,30 +25,37 @@ layer is a list of tuples representing quantum gates.
    Each tuple represents a gate: (gate_name, qubit_index) for 1-qubit gates
                                  (gate_name, control_qubit, target_qubit) for 2-qubit gates
 
-   Supported gates: 'I' (Identity), 'X', 'Y', 'Z', 'H' (Hadamard), 'CX' (CNOT)
-
-   Examples:
-   a) Bell Circuit:
-      [[('H', 0)], [('CX', 0, 1)]]
-
-   b) All Hadamards followed by all X gates on a 4-qubit system:
-      [[('H', 0), ('H', 1), ('H', 2), ('H', 3)], [('X', 0), ('X', 1), ('X', 2), ('X', 3)]]
-
-   c) Parallel 1-qubit and 2-qubit gates:
-      [[('H', 0), ('CX', 1, 2)]]
+   Supported gates: 'I' (Identity), 'X', 'Y', 'Z', 'H' (Hadamard), 'CX' (CNOT), 'S', 'T'
 """
 
+# Basic gate set
 I = qt.qeye(2)
 X = qt.sigmax()
 Y = qt.sigmay()
 Z = qt.sigmaz()
 H = qt.Qobj([[1, 1], [1, -1]]) / np.sqrt(2)
+# S gate (phase gate): |0⟩ → |0⟩, |1⟩ → i|1⟩
+S = qt.Qobj([[1, 0], [0, 1j]])
+# T gate (π/8 gate): |0⟩ → |0⟩, |1⟩ → exp(iπ/4)|1⟩
+T = qt.Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
+
 zero, one = qt.basis(2, 0), qt.basis(2, 1)
 plus = (zero + one).unit()
 minus = (zero - one).unit()
 
 
 def f_H(t, delta_t, start_time):
+    """
+    Time-dependent coefficient function for Hamiltonian evolution.
+
+    Args:
+        t (float): Current time
+        delta_t (float): Duration of the gate
+        start_time (float): Time at which the gate starts
+
+    Returns:
+        float: 1 if within the gate duration window, 0 otherwise
+    """
     t0, t1 = start_time, start_time + delta_t
     return 1 if t0 <= t < t1 else 0
 
@@ -56,15 +63,7 @@ def f_H(t, delta_t, start_time):
 def physical_one_qubit_evolution(input_state, qubit_indices, gate_names, c_ops):
     """
     Applies specified single-qubit gates to selected qubits in a multi-qubit circuit.
-
-    Args:
-    input_state (qutip.Qobj): The input quantum state as a density matrix.
-    qubit_indices (int or list of int): Index or indices of the qubits to apply the gates.
-    gate_names (str or list of str): Names of gates
-    c_ops (list): Error model/Kraus Operators
-
-    Returns:
-    qutip.Qobj: The resulting density matrix
+    Modified to handle S and T gates with proper phase evolution.
     """
     num_qubits = int(np.log2(input_state.shape[0]))
 
@@ -77,7 +76,16 @@ def physical_one_qubit_evolution(input_state, qubit_indices, gate_names, c_ops):
             "The number of qubit indices must match the number of gate names."
         )
 
-    gate_map = {"I": I, "X": X, "Y": Y, "Z": Z, "H": H}
+    # Define gate map with proper scaling factors
+    gate_map = {
+        "I": (I, 1.0),
+        "X": (X, np.pi / 2),
+        "Y": (Y, np.pi / 2),
+        "Z": (Z, np.pi / 2),
+        "H": (H, np.pi / 2),
+        "S": (Z, np.pi / 4),  # S = √Z
+        "T": (Z, np.pi / 8),  # T = √S = fourth_root(Z)
+    }
 
     for gate_name in gate_names:
         if gate_name not in gate_map:
@@ -86,19 +94,19 @@ def physical_one_qubit_evolution(input_state, qubit_indices, gate_names, c_ops):
             )
 
     qubit_ops = []
+    scaling_factor = 1.0
 
     for i in range(num_qubits):
         if i in qubit_indices:
             gate_index = qubit_indices.index(i)
             gate_name = gate_names[gate_index]
-            qubit_op = gate_map[gate_name]
+            gate_op, gate_scaling = gate_map[gate_name]
+            qubit_ops.append(gate_op)
+            scaling_factor = gate_scaling  # Use the scaling factor of the last gate
         else:
-            # If qubit is not operated on, apply identity
-            qubit_op = I
+            qubit_ops.append(I)
 
-        qubit_ops.append(qubit_op)
-
-    gate_op = np.pi / 2 * qt.tensor(*qubit_ops)
+    gate_op = scaling_factor * qt.tensor(*qubit_ops)
 
     td_list = [[gate_op, lambda t, args: f_H(t, 1, 0)]]
 
@@ -171,15 +179,8 @@ def physical_cnot_evolution(input_state, ctrl_idx, tgt_idx, c_ops):
 
 def rep_to_evolution(circuit_rep, input_state, c_ops):
     """
-    Evolves an input state through a quantum circuit represented by our intermediate representation.
-
-    Args:
-    circuit_rep (list): An intermediate representation in our format
-    input_state (qutip.Qobj): The input quantum state as a density matrix
-    c_ops (list): List of collapse operators for the quantum system.
-
-    Returns:
-    qutip.Qobj: The final density matrix after applying the circuit
+    Evolves an input state through a quantum circuit.
+    Now properly handles S and T gates with correct phases.
     """
     if not input_state.isoper:
         raise TypeError(
@@ -195,12 +196,12 @@ def rep_to_evolution(circuit_rep, input_state, c_ops):
         for gate in layer:
             if len(gate) == 2:  # Single-qubit gate
                 gate_name, qubit_index = gate
-                if gate_name in ["I", "X", "Y", "Z", "H"]:
+                if gate_name in ["I", "X", "Y", "Z", "H", "S", "T"]:
                     one_qubit_gates.append(gate_name)
                     one_qubit_indices.append(qubit_index)
                 else:
                     raise ValueError(f"Unsupported single-qubit gate: {gate_name}")
-            elif len(gate) == 3:  # Two-qubit gate (for now, just CNOT)
+            elif len(gate) == 3:  # Two-qubit gate (CNOT)
                 gate_name, control, target = gate
                 if gate_name == "CX":
                     if one_qubit_gates:
@@ -226,6 +227,9 @@ def rep_to_evolution(circuit_rep, input_state, c_ops):
 
 
 def get_depolarizing_ops(p, n):
+    """
+    Generate depolarizing operators for the error model.
+    """
     single_qubit_ops = [
         np.sqrt(1 - p) * I,
         np.sqrt(p / 3) * X,
@@ -248,11 +252,25 @@ def matrix_to_serializable(matrix):
 
 
 def simulate_quantum_circuit(circuit_ir):
-    # Initialize quantum state
-    num_qubits = len(circuit_ir[0])
-    initial_state = qt.basis(4, 0) * qt.basis(4, 0).dag()
-    initial_state.dims = [[2, 2], [2, 2]]
-    c_ops = get_depolarizing_ops(1e-2, 2)
+    """
+    Main simulation function that takes a circuit IR and returns the simulation results.
+    """
+    # Calculate number of qubits from the circuit
+    num_qubits = (
+        max(
+            max(gate[1] if len(gate) == 2 else max(gate[1], gate[2]) for gate in layer)
+            for layer in circuit_ir
+        )
+        + 1
+    )
+
+    # Initialize quantum state with correct dimensions
+    dim = 2**num_qubits
+    initial_state = qt.basis(dim, 0) * qt.basis(dim, 0).dag()
+    initial_state.dims = [[2] * num_qubits, [2] * num_qubits]
+
+    # Generate collapse operators for the correct number of qubits
+    c_ops = get_depolarizing_ops(1e-2, num_qubits)
 
     final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
     final_state_array = final_state.full()
@@ -260,7 +278,7 @@ def simulate_quantum_circuit(circuit_ir):
     # Get the figure from create_density_matrix_plot
     fig = create_density_matrix_plot(final_state_array)
 
-    # Save plot to bytes buffer ONLY ONCE
+    # Save plot to bytes buffer
     buffer = BytesIO()
     fig.savefig(buffer, format="png")
     buffer.seek(0)
@@ -275,9 +293,7 @@ def simulate_quantum_circuit(circuit_ir):
 if __name__ == "__main__":
     # Get circuit IR from command line argument
     circuit_ir = json.loads(sys.argv[1])
-
     # Run simulation
     result = simulate_quantum_circuit(circuit_ir)
-
     # Print result as JSON for API to capture
     print(json.dumps(result))

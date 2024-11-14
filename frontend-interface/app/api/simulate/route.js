@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
-import { PassThrough } from 'stream';
 
 export async function POST(request) {
     console.log('API route /api/simulate called');
@@ -59,12 +58,12 @@ export async function POST(request) {
         console.log('Quantum simulation completed successfully');
 
         return NextResponse.json({
-    message: 'Simulation completed successfully',
-    data: {
-        densityMatrix: simulationResult.density_matrix,
-        plotImage: simulationResult.plot_image
-    }
-}, { status: 200 });
+            message: 'Simulation completed successfully',
+            data: {
+                densityMatrix: simulationResult.density_matrix,
+                plotImage: simulationResult.plot_image
+            }
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error during quantum simulation:', error);

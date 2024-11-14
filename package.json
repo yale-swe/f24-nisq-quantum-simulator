@@ -13,6 +13,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
     "@supabase/supabase-js": "^2.45.6",
+    "lucide-react": "^0.456.0",
     "@testing-library/react": "^13.4.0",
     "jest-fetch-mock": "^3.0.3",
     "mathjs": "^11.12.0",
