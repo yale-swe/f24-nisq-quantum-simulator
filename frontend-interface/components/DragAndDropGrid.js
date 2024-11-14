@@ -6,28 +6,24 @@ import {
     Droppable,
     Draggable,
 } from '@hello-pangea/dnd';
-import { v4 as uuidv4 } from 'uuid';
-import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 import DensityPlot from './DensityPlot';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import LoadingOverlay from './LoadingOverlay';
 
 const initialIcons = [
-    { id: 'cnot-control-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10 },       // Most complex, highest value
-    { id: 'cnot-control-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 10 },    // Same as other CNOT
-    { id: 'hadamard-gate', content: '/icons/H_Gate.svg', type: 'H_Gate', value: 8 },        // Creates superposition
-    { id: 'pauli-x-gate', content: '/icons/X_Gate.svg', type: 'X_Gate', value: 4 },         // Bit flip
-    { id: 'pauli-y-gate', content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 5 },         // Combined X and Z
-    { id: 'pauli-z-gate', content: '/icons/Z_Gate.svg', type: 'Z_Gate', value: 3 },         // Phase flip
-    { id: 'phase-s-gate', content: '/icons/S_Gate.svg', type: 'S_Gate', value: 6 },         // π/2 phase
-    { id: 'phase-t-gate', content: '/icons/T_Gate.svg', type: 'T_Gate', value: 7 },         // π/4 phase
+    { id: 'cnot-control-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10 },
+    { id: 'cnot-control-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 10 },
+    { id: 'hadamard-gate', content: '/icons/H_Gate.svg', type: 'H_Gate', value: 8 },
+    { id: 'pauli-x-gate', content: '/icons/X_Gate.svg', type: 'X_Gate', value: 4 },
+    { id: 'pauli-y-gate', content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 5 },
+    { id: 'pauli-z-gate', content: '/icons/Z_Gate.svg', type: 'Z_Gate', value: 3 },
+    { id: 'phase-s-gate', content: '/icons/S_Gate.svg', type: 'S_Gate', value: 6 },
+    { id: 'phase-t-gate', content: '/icons/T_Gate.svg', type: 'T_Gate', value: 7 },
 ];
+
 const GRID_COLUMNS = 10;
 const MAX_ROWS = 5;
 
@@ -44,6 +40,8 @@ export default function DragAndDropGrid() {
                 }))
             )
     );
+    const [simulationResults, setSimulationResults] = useState(null);
+    const [isSimulating, setIsSimulating] = useState(false);
 
     const addWire = () => {
         if (numRows < MAX_ROWS) {
@@ -59,11 +57,9 @@ export default function DragAndDropGrid() {
     };
 
     const removeWire = (wireIndex) => {
-        if (numRows > 1) {  // Changed from 2 to 1
-            // Create new grid without the removed wire
+        if (numRows > 1) {
             const newGrid = grid.filter((_, idx) => idx !== wireIndex);
 
-            // Remove any CNOT gates that had control or target on the removed wire
             const finalGrid = newGrid.map(row =>
                 row.map(cell => {
                     if (cell.gate?.type === 'CNOT') {
@@ -71,7 +67,6 @@ export default function DragAndDropGrid() {
                         if (control === wireIndex || target === wireIndex) {
                             return { gate: null, occupiedBy: null };
                         }
-                        // Adjust wire indices for remaining CNOT gates
                         const newControl = control > wireIndex ? control - 1 : control;
                         const newTarget = target > wireIndex ? target - 1 : target;
                         return {
@@ -91,19 +86,8 @@ export default function DragAndDropGrid() {
         }
     };
 
-    const getRowValues = (rowIndex) => {
-        const row = grid[rowIndex];
-        return row.map((cell) => {
-            if (cell.gate && cell.gate.value !== null) {
-                return cell.gate.value;
-            }
-            return 0;
-        });
-    };
-
     const isCNOTConflict = (destRow, destCol, gateType, currentGateId = null) => {
         if (!gateType.startsWith('CNOT')) {
-            // For single-qubit gates, only check if trying to place on a wire that's part of a CNOT
             const cell = grid[destRow][destCol];
             return cell.occupiedBy && grid.some(row =>
                 row[destCol]?.gate?.type === 'CNOT' &&
@@ -112,11 +96,9 @@ export default function DragAndDropGrid() {
             );
         }
 
-        // For CNOT gates, only check the target wires
         const targetRow = (destRow + 1) % numRows;
         return grid[destRow][destCol].gate !== null || grid[targetRow][destCol].gate !== null;
     };
-
 
     const onDragEnd = async (result) => {
         const { source, destination, draggableId } = result;
@@ -141,15 +123,6 @@ export default function DragAndDropGrid() {
                     newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
                     setGrid(newGrid);
                 }
-
-                try {
-                    await supabase
-                        .from('icon_positions')
-                        .delete()
-                        .eq('id', draggableId);
-                } catch (error) {
-                    console.error('Error deleting data:', error);
-                }
             }
             return;
         }
@@ -170,9 +143,7 @@ export default function DragAndDropGrid() {
             }
 
             if (cellData.gate.type.startsWith('CNOT')) {
-                const controlQubit = sourceRow;
-                const targetQubit = (controlQubit + 1) % numRows;
-
+                const targetRow = (destRow + 1) % numRows;
                 let newGrid = grid.map((row, rowIndex) => {
                     const newRow = [...row];
                     if (newRow[sourceCol].occupiedBy === cellData.gate.id) {
@@ -181,11 +152,9 @@ export default function DragAndDropGrid() {
                     return newRow;
                 });
 
-                // Place CNOT with updated control and target qubits
                 newGrid = newGrid.map((row, rowIndex) => {
                     const newRow = [...row];
                     if (rowIndex === destRow) {
-                        const targetRow = (destRow + 1) % numRows;
                         newRow[destCol] = {
                             gate: {
                                 ...cellData.gate,
@@ -193,7 +162,7 @@ export default function DragAndDropGrid() {
                             },
                             occupiedBy: cellData.gate.id,
                         };
-                    } else if (rowIndex === (destRow + 1) % numRows) {
+                    } else if (rowIndex === targetRow) {
                         newRow[destCol] = {
                             gate: null,
                             occupiedBy: cellData.gate.id,
@@ -213,16 +182,6 @@ export default function DragAndDropGrid() {
 
                 setGrid(newGrid);
             }
-
-            try {
-                await supabase
-                    .from('icon_positions')
-                    .update({ position_x: destCol, position_y: destRow })
-                    .eq('id', draggableId);
-            } catch (error) {
-                console.error('Error updating data:', error);
-            }
-
             return;
         }
 
@@ -278,10 +237,8 @@ export default function DragAndDropGrid() {
                 const cell = grid[row][col];
                 if (cell.gate) {
                     if (cell.gate.type === 'CNOT' && cell.gate.wireIndices?.[0] === row) {
-                        // Only add CNOT gate once, when we're at the control qubit
                         currentLayer.push(['CX', ...cell.gate.wireIndices]);
                     } else if (!cell.gate.type.startsWith('CNOT')) {
-                        // Single qubit gates
                         currentLayer.push([cell.gate.type.replace('_Gate', ''), row]);
                     }
                 }
@@ -294,6 +251,7 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
+        setIsSimulating(true);
         try {
             const ir = convertGridToIR();
             const response = await fetch('/api/simulate', {
@@ -307,10 +265,11 @@ export default function DragAndDropGrid() {
             }
         } catch (error) {
             console.error('Error:', error);
+            alert('Error generating circuit: ' + error.message);
+        } finally {
+            setIsSimulating(false);
         }
     };
-
-    const [simulationResults, setSimulationResults] = useState(null);
 
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
@@ -329,14 +288,19 @@ export default function DragAndDropGrid() {
                     margin: 0,
                     letterSpacing: '0.5px'
                 }}>
-                    NISQ Quantum Simulator
+                    Design and simulate quantum circuits <br />
+                    in a noisy intermediate-scale quantum environment.
                 </h1>
                 <p style={{
                     fontSize: '1.1rem',
                     color: '#6c757d',
-                    marginTop: '10px'
+                    marginTop: '15px',
+                    lineHeight: '1.6'
                 }}>
-                    Design and simulate quantum circuits in a noisy intermediate-scale quantum environment.
+                    Perfect for all your VQE needs, <br />
+                    we support a wide range of gates (and depolarizing noise!)<br />
+                    Perfect for the "simulations" section of your paper! <br />
+                    (Which no one will read)
                 </p>
             </div>
 
@@ -560,6 +524,7 @@ export default function DragAndDropGrid() {
                     </button>
                 </div>
                 <DensityPlot plotImageData={simulationResults?.plotImage} />
+                <LoadingOverlay isLoading={isSimulating} />
             </DragDropContext>
         </div>
     );

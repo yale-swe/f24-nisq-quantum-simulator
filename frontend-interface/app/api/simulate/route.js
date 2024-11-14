@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
-import { PassThrough } from 'stream';
 
 export async function POST(request) {
     console.log('API route /api/simulate called');
@@ -57,7 +56,6 @@ export async function POST(request) {
         });
 
         console.log('Quantum simulation completed successfully');
-        console.log(simulationResult.density_matrix);
 
         return NextResponse.json({
             message: 'Simulation completed successfully',
