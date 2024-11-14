@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+<<<<<<< HEAD
 import NoiseModel from '../NoiseModel.js';
+=======
+import NoiseModel from '../NoiseModel';
+>>>>>>> 32e2a8731673b696e6d9ae61d7c53941aac04b1d
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
