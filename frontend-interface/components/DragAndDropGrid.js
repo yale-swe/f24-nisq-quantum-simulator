@@ -288,8 +288,7 @@ export default function DragAndDropGrid() {
                     margin: 0,
                     letterSpacing: '0.5px'
                 }}>
-                    Design and simulate quantum circuits <br />
-                    in a noisy intermediate-scale quantum environment.
+                    NISQ Quantum Simulator
                 </h1>
                 <p style={{
                     fontSize: '1.1rem',
@@ -297,10 +296,8 @@ export default function DragAndDropGrid() {
                     marginTop: '15px',
                     lineHeight: '1.6'
                 }}>
-                    Perfect for all your VQE needs, <br />
-                    we support a wide range of gates (and depolarizing noise!)<br />
-                    Perfect for the "simulations" section of your paper! <br />
-                    (Which no one will read)
+                    Design and simulate quantum circuits <br />
+                    in a noisy intermediate-scale quantum environment.
                 </p>
             </div>
 
