@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import DensityPlot from './DensityPlot';
+import DensityPlot from '../DensityPlot';
 
 // Clean up after each test
 afterEach(cleanup);
