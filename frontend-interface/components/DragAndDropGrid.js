@@ -336,7 +336,9 @@ export default function DragAndDropGrid() {
                     color: '#6c757d',
                     marginTop: '10px'
                 }}>
-                    Design and simulate quantum circuits in a noisy intermediate-scale quantum environment
+                    Design and simulate quantum circuits in a noisy intermediate-scale quantum environment.
+                    Perfect for all your VQE needs, we support a wide range of gates (and depolarizing noise!)
+                    Perfect for the "simulations" section of your paper! (Which no one will read)
                 </p>
             </div>
 
