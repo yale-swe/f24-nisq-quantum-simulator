@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import NoiseModel from './NoiseModel';
+import NoiseModel from '../NoiseModel.js';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -42,14 +42,14 @@ describe('NoiseModel Component', () => {
     });
 
     it('should validate JSON syntax for noise model', () => {
-        const { validateNoiseModelSyntax } = require('./NoiseModel').default.prototype;
+        const { validateNoiseModelSyntax } = require('../NoiseModel').default.prototype;
         expect(validateNoiseModelSyntax('invalid json')).toBe(false);
         expect(validateNoiseModelSyntax(JSON.stringify([[1, 0], [0, 1]]))).toBe(true);
         expect(validateNoiseModelSyntax(JSON.stringify([[1, 'a'], [0, 1]]))).toBe(false);
     });
 
     it('should validate linear algebra noise model', () => {
-        const { validateNoiseModelLinAlg } = require('./NoiseModel').default.prototype;
+        const { validateNoiseModelLinAlg } = require('../NoiseModel').default.prototype;
         const matrices = [
             [[1, 0], [0, 1]],
             [[1, 0], [0, 1]],
@@ -75,7 +75,7 @@ describe('NoiseModel Component', () => {
     });
 
     it('should handle errors in the noise model syntax', () => {
-        const { processNoiseModel } = require('./NoiseModel').default.prototype;
+        const { processNoiseModel } = require('../NoiseModel').default.prototype;
         const setErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         processNoiseModel('invalid data');
         expect(setErrorSpy).toHaveBeenCalledWith('Error in Noise Model Syntax');
