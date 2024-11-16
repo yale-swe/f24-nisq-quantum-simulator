@@ -24,17 +24,20 @@ const initialIcons = [
     { id: 'phase-t-gate', content: '/icons/T_Gate.svg', type: 'T_Gate', value: 7 },
 ];
 
-const GRID_COLUMNS = 10;
+const INITIAL_COLUMNS = 10;
 const MAX_ROWS = 5;
+const MIN_COLUMNS = 1;
+const MAX_COLUMNS = 20;
 
 export default function DragAndDropGrid() {
     const [icons, setIcons] = useState(initialIcons);
     const [numRows, setNumRows] = useState(2);
+    const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS);
     const [grid, setGrid] = useState(
         Array(numRows)
             .fill(null)
             .map(() =>
-                Array(GRID_COLUMNS).fill(null).map(() => ({
+                Array(numColumns).fill(null).map(() => ({
                     gate: null,
                     occupiedBy: null,
                 }))
@@ -42,13 +45,44 @@ export default function DragAndDropGrid() {
     );
     const [simulationResults, setSimulationResults] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
+    const [showWarning, setShowWarning] = useState(false);
+
+
+    const addLayer = () => {
+        if (numColumns < MAX_COLUMNS) {
+            setNumColumns(prev => prev + 1);
+            setGrid(prev => prev.map(row => [
+                ...row,
+                {
+                    gate: null,
+                    occupiedBy: null,
+                }
+            ]));
+        }
+    };
+
+    const checkLastColumnForGates = () => {
+        return grid.some(row => row[numColumns - 1].gate !== null);
+    };
+
+    const removeLayer = () => {
+        if (numColumns > MIN_COLUMNS) {
+            if (checkLastColumnForGates()) {
+                setShowWarning(true);
+                setTimeout(() => setShowWarning(false), 3000); // Hide warning after 3 seconds
+                return;
+            }
+            setNumColumns(prev => prev - 1);
+            setGrid(prev => prev.map(row => row.slice(0, -1)));
+        }
+    };
 
     const addWire = () => {
         if (numRows < MAX_ROWS) {
             setNumRows(prev => prev + 1);
             setGrid(prev => [
                 ...prev,
-                Array(GRID_COLUMNS).fill(null).map(() => ({
+                Array(numColumns).fill(null).map(() => ({
                     gate: null,
                     occupiedBy: null,
                 }))
@@ -231,7 +265,7 @@ export default function DragAndDropGrid() {
         const ir = [];
         let currentLayer = [];
 
-        for (let col = 0; col < GRID_COLUMNS; col++) {
+        for (let col = 0; col < numColumns; col++) {
             currentLayer = [];
             for (let row = 0; row < numRows; row++) {
                 const cell = grid[row][col];
@@ -351,10 +385,66 @@ export default function DragAndDropGrid() {
                     <h2 style={{ color: 'black' }}>Quantum Circuit</h2>
                     <div style={{
                         position: 'relative',
-                        width: `${GRID_COLUMNS * 60}px`,
+                        width: `${numColumns * 60}px`,
                         height: `${numRows * 60}px`,
                         marginLeft: '40px'
                     }}>
+                        {/* Layer Controls */}
+                        <div style={{
+                            position: 'absolute',
+                            right: '-80px',
+                            top: '10px',
+                            display: 'flex',
+                            gap: '10px',
+                            zIndex: 3
+                        }}>
+                            <button
+                                onClick={removeLayer}
+                                disabled={numColumns <= MIN_COLUMNS}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: numColumns <= MIN_COLUMNS ? '#cccccc' : '#4CAF50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: numColumns <= MIN_COLUMNS ? 'not-allowed' : 'pointer'
+                                }}
+                            >
+                                ←
+                            </button>
+                            <button
+                                onClick={addLayer}
+                                disabled={numColumns >= MAX_COLUMNS}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: numColumns >= MAX_COLUMNS ? '#cccccc' : '#4CAF50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: numColumns >= MAX_COLUMNS ? 'not-allowed' : 'pointer'
+                                }}
+                            >
+                                →
+                            </button>
+                        </div>
+
+                        {/* Warning Message */}
+                        {showWarning && (
+                            <div style={{
+                                position: 'absolute',
+                                right: '-250px',
+                                top: '50px',
+                                backgroundColor: '#ffeb3b',
+                                padding: '10px',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                zIndex: 3,
+                                maxWidth: '200px'
+                            }}>
+                                Cannot remove layer containing gates
+                            </div>
+                        )}
+
                         {/* Horizontal wires with remove buttons */}
                         {Array.from({ length: numRows }).map((_, rowIndex) => (
                             <div key={`wire-container-${rowIndex}`} style={{ position: 'relative' }}>
@@ -407,7 +497,7 @@ export default function DragAndDropGrid() {
                         <div style={{
                             display: 'grid',
                             gridTemplateRows: `repeat(${numRows}, 60px)`,
-                            gridTemplateColumns: `repeat(${GRID_COLUMNS}, 60px)`,
+                            gridTemplateColumns: `repeat(${numColumns}, 60px)`,
                             position: 'absolute',
                             top: 0,
                             left: 0,
@@ -416,7 +506,7 @@ export default function DragAndDropGrid() {
                             gap: 0
                         }}>
                             {Array.from({ length: numRows }).map((_, rowIndex) =>
-                                Array.from({ length: GRID_COLUMNS }).map((_, colIndex) => {
+                                Array.from({ length: numColumns }).map((_, colIndex) => {
                                     const cellId = `cell-${rowIndex}-${colIndex}`;
                                     const cellData = grid[rowIndex][colIndex];
                                     const isCNOTControl = cellData?.gate?.type === 'CNOT' &&
