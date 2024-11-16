@@ -1,47 +1,130 @@
 :root {
-  --background: #f8f9fa;
-  --foreground: #212529;
-  --primary: #0d6efd;
-  --secondary: #6c757d;
-  --accent: #4361ee;
-  --success: #198754;
-  --error: #dc3545;
+  /* Core colors */
+  --background-dark: #000000;
+  --neon-green: #00ff41;
+  --neon-blue: #0ff0fc;
+  --neon-purple: #b026ff;
+  --foreground: #ffffff;
+
+  /* Glow effects */
+  --green-glow: 0 0 10px rgba(0, 255, 65, 0.5),
+    0 0 20px rgba(0, 255, 65, 0.3),
+    0 0 30px rgba(0, 255, 65, 0.1);
+  --blue-glow: 0 0 10px rgba(15, 240, 252, 0.5),
+    0 0 20px rgba(15, 240, 252, 0.3),
+    0 0 30px rgba(15, 240, 252, 0.1);
+
+  /* Component backgrounds */
+  --surface-dark: rgba(0, 255, 65, 0.05);
+  --border-glow: rgba(0, 255, 65, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
+/* Base styles */
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
+  background-color: var(--background-dark);
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-share-tech-mono);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* Main container styles */
+.page {
+  min-height: 100vh;
+  background-color: var(--background-dark);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.1) 0%, transparent 50%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Component styles */
+.component {
+  background: var(--surface-dark);
+  border: 1px solid var(--neon-green);
+  box-shadow: var(--green-glow);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.component:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.7),
+    0 0 30px rgba(0, 255, 65, 0.5),
+    0 0 45px rgba(0, 255, 65, 0.3);
+}
+
+/* Button styles */
+button {
+  background: var(--surface-dark);
+  color: var(--neon-green);
+  border: 1px solid var(--neon-green);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-share-tech-mono);
+  box-shadow: var(--green-glow);
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: rgba(0, 255, 65, 0.1);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.7),
+    0 0 30px rgba(0, 255, 65, 0.5);
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quantum circuit grid */
+.circuit-grid {
+  background: var(--surface-dark);
+  border: 2px solid var(--neon-green);
+  box-shadow: var(--green-glow);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Wire lines */
+.wire-line {
+  height: 2px;
+  background: var(--neon-green);
+  box-shadow: var(--green-glow);
+}
+
+/* Gate styles */
+.quantum-gate {
+  background: var(--surface-dark);
+  border: 1px solid var(--neon-green);
+  box-shadow: var(--green-glow);
+  transition: all 0.3s ease;
+}
+
+.quantum-gate--blue {
+  border-color: var(--neon-blue);
+  box-shadow: var(--blue-glow);
+}
+
+.quantum-gate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.7),
+    0 0 30px rgba(0, 255, 65, 0.5);
+}
+
+/* Headings */
+h1,
+h2,
+h3 {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  font-family: var(--font-share-tech-mono);
+}
+
+/* Control panel */
+.control-panel {
+  background: var(--surface-dark);
+  border: 1px solid var(--neon-green);
+  box-shadow: var(--green-glow);
+  border-radius: 8px;
+  padding: 1rem;
 }
