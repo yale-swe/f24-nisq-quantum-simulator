@@ -8,9 +8,8 @@ import NoiseModel, {
 } from '../NoiseModel';
 import fetchMock from 'jest-fetch-mock';
 
-// Single beforeEach block at the top level
 beforeEach(() => {
-    global.fetch.mockClear();
+    fetchMock.resetMocks();  // Use this instead of global.fetch.mockClear()
     jest.clearAllMocks();
 });
 
