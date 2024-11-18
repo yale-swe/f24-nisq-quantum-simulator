@@ -99,7 +99,8 @@ describe('NoiseModel Component', () => {
     it('should call saveModel on modelMatrix update', async () => {
 	    // Setup fetch mock for this specific test
 	    fetchMock.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }), {
-		    status: 200
+		    status: 200,
+		    headers: { 'content-type': 'application/json' }
 		});
 	    
 	    await act(async () => {
