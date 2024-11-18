@@ -4,3 +4,5 @@ frontend-interface/.next
 outputs.json
 *.vscode
 *log.txt*
+__pycache__/
+visualizations/__pycache__/
