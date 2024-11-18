@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, act} from '@testing-library/react';
+import { render, screen, fireEvent} from '@testing-library/react';
+import { act } from 'react'
 import '@testing-library/jest-dom';
 import NoiseModel, { 
     validateNoiseModelSyntax, 
@@ -91,13 +92,15 @@ describe('NoiseModel Component', () => {
 	        fireEvent.click(loadButton);
 	    });
 	    
-	    expect(screen.getByText('Invalid Noise Model Syntax')).toBeInTheDocument();
+	    expect(screen.getByText('Error in Noise Model Syntax')).toBeInTheDocument();
 	    consoleSpy.mockRestore();
 	});
 
     it('should call saveModel on modelMatrix update', async () => {
 	    // Setup fetch mock for this specific test
-	    fetchMock.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }));
+	    fetchMock.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }), {
+		    status: 200
+		});
 	    
 	    await act(async () => {
 	        render(<NoiseModel />);
