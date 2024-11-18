@@ -2,19 +2,19 @@ import React from 'react';
 import { render, screen, fireEvent, act} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import NoiseModel, { 
-	validateNoiseModelSyntax, 
-	validateNoiseModelLinAlg,
-	processNoiseModel 
+    validateNoiseModelSyntax, 
+    validateNoiseModelLinAlg,
+    processNoiseModel 
 } from '../NoiseModel';
 import fetchMock from 'jest-fetch-mock';
 
+// Single beforeEach block at the top level
+beforeEach(() => {
+    global.fetch.mockClear();
+    jest.clearAllMocks();
+});
 
 describe('NoiseModel Component', () => {
-    beforeEach(() => {
-        fetch.resetMocks();
-        jest.clearAllMocks();
-    });
-
     it('should render the file input and load button', async () => {
         await act(async () => {
             render(<NoiseModel />);
@@ -40,45 +40,43 @@ describe('NoiseModel Component', () => {
         expect(screen.getByText('Invalid File Format (.txt required)')).toBeInTheDocument();
     });
 
-	it('should display status for no file selected', () => {
-		render(<NoiseModel />);
-		const loadButton = screen.getByText(/Load Noise Model/i);
-		fireEvent.click(loadButton);
-		expect(screen.getByText('No file selected!')).toBeInTheDocument();
-	});
+    it('should display status for no file selected', () => {
+        render(<NoiseModel />);
+        const loadButton = screen.getByText(/Load Noise Model/i);
+        fireEvent.click(loadButton);
+        expect(screen.getByText('No file selected!')).toBeInTheDocument();
+    });
 
-	// Modified validation tests
-	it('should validate JSON syntax for noise model', () => {
-		expect(validateNoiseModelSyntax('invalid json')).toBe(false);
-		// Wrap matrix in an additional array since we expect array of matrices
-		expect(validateNoiseModelSyntax(JSON.stringify([[[1, 0], [0, 1]]]))).toBe(true);
-		expect(validateNoiseModelSyntax(JSON.stringify([[[1, 'a'], [0, 1]]]))).toBe(false);
-	});
+    it('should validate JSON syntax for noise model', () => {
+        expect(validateNoiseModelSyntax('invalid json')).toBe(false);
+        expect(validateNoiseModelSyntax(JSON.stringify([[[1, 0], [0, 1]]]))).toBe(true);
+        expect(validateNoiseModelSyntax(JSON.stringify([[[1, 'a'], [0, 1]]]))).toBe(false);
+    });
 
-	it('should validate linear algebra noise model', () => {
-		const matrices = [
-			[[1, 0], [0, 1]]  // Single matrix is sufficient for identity
-		];
-		expect(validateNoiseModelLinAlg(matrices)).toBe(true);
-	});
+    it('should validate linear algebra noise model', () => {
+        const matrices = [
+            [[1, 0], [0, 1]]
+        ];
+        expect(validateNoiseModelLinAlg(matrices)).toBe(true);
+    });
 
-	it('should load matrix and update modelMatrix state', async () => {
-		render(<NoiseModel />);
-		const loadButton = screen.getByText(/Load Noise Model/i);
-		const fileInput = screen.getByLabelText(/Choose File/i);
-		const file = new File([JSON.stringify([[[1, 0], [0, 1]]])], 'noise.txt', {
-			type: 'text/plain',
-		});
+    it('should load matrix and update modelMatrix state', async () => {
+        render(<NoiseModel />);
+        const loadButton = screen.getByText(/Load Noise Model/i);
+        const fileInput = screen.getByLabelText(/Choose File/i);
+        const file = new File([JSON.stringify([[[1, 0], [0, 1]]])], 'noise.txt', {
+            type: 'text/plain',
+        });
 
-		Object.defineProperty(fileInput, 'files', {
-			value: [file],
-		});
+        Object.defineProperty(fileInput, 'files', {
+            value: [file],
+        });
 
-		fireEvent.click(loadButton);
-		await screen.findByText('Noise Model Read Successfully');
-	});
+        fireEvent.click(loadButton);
+        await screen.findByText('Noise Model Read Successfully');
+    });
 
-	it('should handle errors in the noise model syntax', async () => {
+    it('should handle errors in the noise model syntax', async () => {
         const setErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         
         await act(async () => {
@@ -96,7 +94,7 @@ describe('NoiseModel Component', () => {
     });
 
     it('should call saveModel on modelMatrix update', async () => {
-        fetch.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }));
+        global.fetch.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }));
         
         await act(async () => {
             render(<NoiseModel />);
