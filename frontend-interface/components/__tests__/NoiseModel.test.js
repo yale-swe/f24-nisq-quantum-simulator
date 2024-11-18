@@ -75,4 +75,51 @@ describe('NoiseModel Component', () => {
         fireEvent.click(loadButton);
         await screen.findByText('Noise Model Read Successfully');
     });
+
+    it('should handle errors in the noise model syntax', async () => {
+	    const consoleSpy = jest.spyOn(console, 'error');
+	    
+	    render(<NoiseModel />);
+	    const loadButton = screen.getByText(/Load Noise Model/i);
+	    const fileInput = screen.getByLabelText(/Choose File/i);
+
+	    await act(async () => {
+	        Object.defineProperty(fileInput, 'files', {
+	            value: [new File(['invalid json'], 'noise.txt', {
+	                type: 'text/plain',
+	            })],
+	        });
+	        fireEvent.click(loadButton);
+	    });
+	    
+	    expect(screen.getByText('Error in Noise Model Syntax')).toBeInTheDocument();
+	    consoleSpy.mockRestore();
+	});
+
+    it('should call saveModel on modelMatrix update', async () => {
+	    // Setup fetch mock for this specific test
+	    fetchMock.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }), {
+		    status: 200,
+		    headers: { 'content-type': 'application/json' }
+		});
+	    
+	    await act(async () => {
+	        render(<NoiseModel />);
+	    });
+
+	    const loadButton = screen.getByText(/Load Noise Model/i);
+	    const fileInput = screen.getByLabelText(/Choose File/i);
+	    
+	    await act(async () => {
+	        Object.defineProperty(fileInput, 'files', {
+	            value: [new File([JSON.stringify([[[1, 0], [0, 1]]])], 'noise.txt', {
+	                type: 'text/plain',
+	            })],
+	        });
+	        fireEvent.click(loadButton);
+	    });
+
+	    // Wait for the status update
+	    await screen.findByText(/Matrix saved/i);
+	});
 });
