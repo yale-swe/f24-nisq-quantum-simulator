@@ -250,12 +250,55 @@ def matrix_to_serializable(matrix):
     """Convert a matrix with complex entries to serializable format."""
     return [[complex_to_serializable(x) for x in row] for row in matrix]
 
+def validate_circuit_layers(circuit_rep):
+    """
+    Validates that each layer in the circuit representation has no overlapping qubits.
+    
+    Args:
+        circuit_rep (list): List of layers, where each layer is a list of gate tuples.
+            Gate tuples can be either:
+            - Single qubit gates: (gate_name, qubit_index)
+            - Two qubit gates: (gate_name, control_qubit, target_qubit)
+    
+    Raises:
+        ValueError: If any layer contains gates that operate on the same qubit.
+        
+    Returns:
+        None if the circuit is valid.
+    """
+    for layer_idx, layer in enumerate(circuit_rep):
+        # Keep track of which qubits are used in this layer
+        used_qubits = set()
+        
+        for gate in layer:
+            # Extract qubit indices based on gate type
+            if len(gate) == 2:  # Single qubit gate
+                gate_qubits = {gate[1]}
+            elif len(gate) == 3:  # Two qubit gate
+                gate_qubits = {gate[1], gate[2]}
+            else:
+                raise ValueError(f"Invalid gate format in layer {layer_idx}: {gate}")
+            
+            # Check for overlap with previously used qubits
+            overlap = gate_qubits.intersection(used_qubits)
+            if overlap:
+                raise ValueError(
+                    f"Invalid layer {layer_idx}: Qubit(s) {overlap} used in multiple gates.\n"
+                    f"Layer contents: {layer}"
+                )
+            
+            # Add these qubits to the used set
+            used_qubits.update(gate_qubits)
+
 
 def simulate_quantum_circuit(circuit_ir):
     """
     Main simulation function that takes a circuit IR and returns the simulation results.
     """
     # Calculate number of qubits from the circuit
+
+    validate_circuit_layers(circuit_ir)
+
     num_qubits = (
         max(
             max(gate[1] if len(gate) == 2 else max(gate[1], gate[2]) for gate in layer)
