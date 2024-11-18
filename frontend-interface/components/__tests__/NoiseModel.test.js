@@ -76,41 +76,46 @@ describe('NoiseModel Component', () => {
     });
 
     it('should handle errors in the noise model syntax', async () => {
-        const setErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-        
-        await act(async () => {
-            render(<NoiseModel />);
-        });
-        
-        const loadButton = screen.getByText(/Load Noise Model/i);
-        
-        await act(async () => {
-            fireEvent.click(loadButton);
-        });
-        
-        expect(setErrorSpy).toHaveBeenCalledWith('Error in Noise Model Syntax');
-        setErrorSpy.mockRestore();
-    });
+	    const consoleSpy = jest.spyOn(console, 'error');
+	    
+	    render(<NoiseModel />);
+	    const loadButton = screen.getByText(/Load Noise Model/i);
+	    const fileInput = screen.getByLabelText(/Choose File/i);
+
+	    await act(async () => {
+	        Object.defineProperty(fileInput, 'files', {
+	            value: [new File(['invalid json'], 'noise.txt', {
+	                type: 'text/plain',
+	            })],
+	        });
+	        fireEvent.click(loadButton);
+	    });
+	    
+	    expect(screen.getByText('Invalid Noise Model Syntax')).toBeInTheDocument();
+	    consoleSpy.mockRestore();
+	});
 
     it('should call saveModel on modelMatrix update', async () => {
-        global.fetch.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }));
-        
-        await act(async () => {
-            render(<NoiseModel />);
-        });
+	    // Setup fetch mock for this specific test
+	    fetchMock.mockResponseOnce(JSON.stringify({ message: 'Matrix saved' }));
+	    
+	    await act(async () => {
+	        render(<NoiseModel />);
+	    });
 
-        const loadButton = screen.getByText(/Load Noise Model/i);
-        const fileInput = screen.getByLabelText(/Choose File/i);
-        
-        await act(async () => {
-            Object.defineProperty(fileInput, 'files', {
-                value: [new File([JSON.stringify([[[1, 0], [0, 1]]])], 'noise.txt', {
-                    type: 'text/plain',
-                })],
-            });
-            fireEvent.click(loadButton);
-        });
+	    const loadButton = screen.getByText(/Load Noise Model/i);
+	    const fileInput = screen.getByLabelText(/Choose File/i);
+	    
+	    await act(async () => {
+	        Object.defineProperty(fileInput, 'files', {
+	            value: [new File([JSON.stringify([[[1, 0], [0, 1]]])], 'noise.txt', {
+	                type: 'text/plain',
+	            })],
+	        });
+	        fireEvent.click(loadButton);
+	    });
 
-        expect(await screen.findByText('Matrix saved')).toBeInTheDocument();
-    });
+	    // Wait for the status update
+	    await screen.findByText(/Matrix saved/i);
+	});
 });
