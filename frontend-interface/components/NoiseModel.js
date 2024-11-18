@@ -103,7 +103,7 @@ export default function NoiseModel() {
         console.log("Posting Matrix Data:", matrix);
 
         try {
-            const response = await fetch('/api/saveOutputs', {
+            const response = await fetch('http://localhost:3000/api/saveOutputs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
