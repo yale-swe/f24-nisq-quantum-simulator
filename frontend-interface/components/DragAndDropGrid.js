@@ -22,6 +22,9 @@ const initialIcons = [
     { id: 'pauli-z-gate', content: '/icons/Z_Gate.svg', type: 'Z_Gate', value: 3 },
     { id: 'phase-s-gate', content: '/icons/S_Gate.svg', type: 'S_Gate', value: 6 },
     { id: 'phase-t-gate', content: '/icons/T_Gate.svg', type: 'T_Gate', value: 7 },
+    { id: 'pauli-x-gate-err', content: '/icons/X_Err.svg', type: 'X_Err', value: 11 },
+    { id: 'pauli-y-gate-err', content: '/icons/Y_Err.svg', type: 'Y_Err', value: 12 },
+    { id: 'pauli-z-gate-err', content: '/icons/Z_Err.svg', type: 'Z_Err', value: 13 },
 ];
 
 const INITIAL_COLUMNS = 10;
