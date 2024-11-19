@@ -50,4 +50,6 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    
+    - name: Run Jest Tests
+      run: |
+        npx jest "frontend-interface/components/__tests__/DragAndDropGrid.test.js"
