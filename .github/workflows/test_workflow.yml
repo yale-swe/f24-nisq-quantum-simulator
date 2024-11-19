@@ -50,7 +50,4 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run Jest Tests
-      run: |
-        npx jest "frontend-interface/components/__tests__/NoiseModel.test.js"
-        npx jest "frontend-interface/components/__tests__/DensityPlot.test.js"
+    

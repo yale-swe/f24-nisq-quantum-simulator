@@ -1,10 +1,17 @@
+// DensityPlot.test.js
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DensityPlot from '../DensityPlot';
 
-// Clean up after each test
-afterEach(cleanup);
+// Mock URL.createObjectURL and URL.revokeObjectURL
+global.URL.createObjectURL = jest.fn(() => 'mock-url');
+global.URL.revokeObjectURL = jest.fn();
+
+afterEach(() => {
+    cleanup();
+    jest.clearAllMocks();
+});
 
 describe('DensityPlot Component', () => {
     test('renders null when plotImageData is not provided', () => {
@@ -16,7 +23,6 @@ describe('DensityPlot Component', () => {
         const base64Image = btoa('mock image data');
         render(<DensityPlot plotImageData={base64Image} />);
 
-        // Check if the img element is rendered with the mock URL
         const imageElement = screen.getByAltText('Density Matrix Plot');
         expect(imageElement).toBeInTheDocument();
         expect(imageElement.src).toBe('mock-url');
@@ -27,46 +33,40 @@ describe('DensityPlot Component', () => {
         const { unmount } = render(<DensityPlot plotImageData={base64Image} />);
         unmount();
 
-        // Ensure revokeObjectURL is called during cleanup
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
     });
 
     test('logs error in console when image load fails', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
         const base64Image = btoa('mock image data');
         render(<DensityPlot plotImageData={base64Image} />);
-        
+
         const imageElement = screen.getByAltText('Density Matrix Plot');
-
-        // Mock console.error
-        console.error = jest.fn();
-
-        // Trigger onError
         imageElement.dispatchEvent(new Event('error'));
-        
+
         expect(console.error).toHaveBeenCalledWith('Image load error:', expect.any(Event));
+        consoleSpy.mockRestore();
     });
 
     test('logs successful load in console', () => {
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
         const base64Image = btoa('mock image data');
         render(<DensityPlot plotImageData={base64Image} />);
-        
+
         const imageElement = screen.getByAltText('Density Matrix Plot');
-
-        // Mock console.log
-        console.log = jest.fn();
-
-        // Trigger onLoad
         imageElement.dispatchEvent(new Event('load'));
 
         expect(console.log).toHaveBeenCalledWith('Image loaded successfully');
+        consoleSpy.mockRestore();
     });
 
     test('catches and logs error when processing invalid base64 data', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
         const invalidBase64Image = 'invalidBase64Data';
-        console.error = jest.fn();
-        
+
         render(<DensityPlot plotImageData={invalidBase64Image} />);
 
         expect(console.error).toHaveBeenCalledWith('Error processing image data:', expect.any(Error));
+        consoleSpy.mockRestore();
     });
 });
