@@ -178,6 +178,13 @@ export default function DragAndDropGrid() {
 
             if (cellData.gate.type.startsWith('CNOT')) {
                 const targetRow = (destRow + 1) % numRows;
+
+                // Add check for valid target wire
+                if (targetRow <= destRow) {
+                    alert('CNOT gate requires two separate wires below the control wire.');
+                    return;
+                }
+
                 let newGrid = grid.map((row, rowIndex) => {
                     const newRow = [...row];
                     if (newRow[sourceCol].occupiedBy === cellData.gate.id) {
@@ -223,6 +230,16 @@ export default function DragAndDropGrid() {
             const originalIcon = icons.find((icon) => icon.id === draggableId);
             const newGate = { ...originalIcon, id: uuidv4() };
             const [destRow, destCol] = destination.droppableId.split('-').slice(1).map(Number);
+
+            if (newGate.type.startsWith('CNOT')) {
+                const targetRow = (destRow + 1) % numRows;
+
+                // Add check for valid target wire
+                if (targetRow <= destRow) {
+                    alert('CNOT gate requires two separate wires below the control wire.');
+                    return;
+                }
+            }
 
             if (isCNOTConflict(destRow, destCol, newGate.type)) {
                 alert('Cannot place gate here due to CNOT gate conflict.');
