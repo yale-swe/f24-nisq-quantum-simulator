@@ -1,4 +1,8 @@
 import React from 'react';
+<<<<<<< Updated upstream
+=======
+import { render, screen } from '@testing-library/react';
+>>>>>>> Stashed changes
 import DragAndDropGrid from '../DragAndDropGrid';
 import { render, screen, fireEvent } from '@testing-library/react';
 
