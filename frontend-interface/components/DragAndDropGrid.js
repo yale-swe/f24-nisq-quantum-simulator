@@ -829,7 +829,7 @@ export default function DragAndDropGrid() {
                                                                         height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}px`,
                                                                         zIndex: snapshot.isDragging ? 9999 : 1,
                                                                         transformOrigin: 'center center',
-                                                                        transform: 'scale(1.2)',
+
                                                                     }}
                                                                 >
                                                                     <Image
