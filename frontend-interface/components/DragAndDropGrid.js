@@ -15,7 +15,7 @@ import LoadingOverlay from './LoadingOverlay';
 
 const initialIcons = [
     { id: 'cnot-control-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10 },
-    { id: 'cnot-control-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 10 },
+    { id: 'cnot-control-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9 },
     { id: 'hadamard-gate', content: '/icons/H_Gate.svg', type: 'H_Gate', value: 8 },
     { id: 'pauli-x-gate', content: '/icons/X_Gate.svg', type: 'X_Gate', value: 4 },
     { id: 'pauli-y-gate', content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 5 },
@@ -206,15 +206,9 @@ export default function DragAndDropGrid() {
                     newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
                     setGrid(newGrid);
                 }
-
-                // Update layer type after removal
-                const newLayerTypes = [...layerTypes];
-                newLayerTypes[sourceCol] = determineLayerType(sourceCol);
-                setLayerTypes(newLayerTypes);
             }
             return;
         }
-
         if (source.droppableId === destination.droppableId && source.index === destination.index) {
             return;
         }
@@ -235,11 +229,14 @@ export default function DragAndDropGrid() {
                 return;
             }
 
+            let newGrid = [...grid];
+
             if (cellData.gate.type.startsWith('CNOT')) {
                 const targetRow = (destRow + 1) % numRows;
 
+                // Add check for valid target wire
                 if (targetRow <= destRow) {
-                    showTemporaryWarning('A CNOT gate requires two adjacent wires.');
+                    alert('CNOT gate requires two separate wires below the control wire.');
                     return;
                 }
 
@@ -269,15 +266,9 @@ export default function DragAndDropGrid() {
                     }
                     return newRow;
                 });
-
                 setGrid(newGrid);
-
-                // Update layer types after CNOT move
-                const newLayerTypes = [...layerTypes];
-                newLayerTypes[sourceCol] = determineLayerType(sourceCol);
-                newLayerTypes[destCol] = determineLayerType(destCol);
-                setLayerTypes(newLayerTypes);
-            } else {
+            }
+            else {
                 const newGrid = [...grid];
                 newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
                 newGrid[destRow][destCol] = {
@@ -286,13 +277,14 @@ export default function DragAndDropGrid() {
                 };
 
                 setGrid(newGrid);
-
-                // Update layer types after gate move
-                const newLayerTypes = [...layerTypes];
-                newLayerTypes[sourceCol] = determineLayerType(sourceCol);
-                newLayerTypes[destCol] = determineLayerType(destCol);
-                setLayerTypes(newLayerTypes);
             }
+
+            // Update layer types after gate move
+            const newLayerTypes = [...layerTypes];
+            newLayerTypes[sourceCol] = determineLayerType(sourceCol);
+            newLayerTypes[destCol] = determineLayerType(destCol);
+            setLayerTypes(newLayerTypes);
+
             return;
         }
 
@@ -306,6 +298,8 @@ export default function DragAndDropGrid() {
                 return;
             }
 
+            let newGrid = [...grid];
+
             if (newGate.type.startsWith('CNOT')) {
                 const targetRow = (destRow + 1) % numRows;
 
@@ -313,47 +307,33 @@ export default function DragAndDropGrid() {
                     showTemporaryWarning('A CNOT gate requires two adjacent wires.');
                     return;
                 }
-            }
 
-            if (isCNOTConflict(destRow, destCol, newGate.type)) {
-                showTemporaryWarning('A CNOT gate occupies this wire. Remove it to place a gate.');
-                return;
-            }
-
-            if (newGate.type.startsWith('CNOT')) {
-                const targetRow = (destRow + 1) % numRows;
-                const newGrid = grid.map((row, rowIndex) => {
-                    const newRow = [...row];
-                    if (rowIndex === destRow) {
-                        newRow[destCol] = {
-                            gate: {
-                                ...newGate,
-                                wireIndices: [destRow, targetRow]
-                            },
-                            occupiedBy: newGate.id,
-                        };
-                    } else if (rowIndex === targetRow) {
-                        newRow[destCol] = {
-                            gate: null,
-                            occupiedBy: newGate.id,
-                        };
-                    }
-                    return newRow;
-                });
-                setGrid(newGrid);
+                newGrid[destRow][destCol] = {
+                    gate: {
+                        ...newGate,
+                        wireIndices: [destRow, targetRow]
+                    },
+                    occupiedBy: newGate.id,
+                };
+                newGrid[targetRow][destCol] = {
+                    gate: null,
+                    occupiedBy: newGate.id,
+                };
             } else {
-                const newGrid = [...grid];
                 newGrid[destRow][destCol] = {
                     gate: newGate,
                     occupiedBy: newGate.id,
                 };
-                setGrid(newGrid);
             }
+
+            setGrid(newGrid);
 
             // Update layer type after new gate placement
             const newLayerTypes = [...layerTypes];
             newLayerTypes[destCol] = determineLayerType(destCol);
             setLayerTypes(newLayerTypes);
+
+            return;
         }
     };
 
@@ -834,29 +814,31 @@ export default function DragAndDropGrid() {
                                                 >
                                                     {cellData?.gate && (isCNOTControl ? (
                                                         <Draggable draggableId={cellData.gate.id} index={0}>
-                                                            {(provided) => (
+                                                            {(provided, snapshot) => (
                                                                 <div
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
                                                                     {...provided.dragHandleProps}
                                                                     style={{
                                                                         ...provided.draggableProps.style,
-                                                                        cursor: 'pointer',
-                                                                        position: 'absolute',
-                                                                        top: '30px',
-                                                                        left: '50%',
-                                                                        transform: 'translateX(-50%)',
+                                                                        cursor: 'grab',
+                                                                        position: snapshot.isDragging ? 'relative' : 'absolute',
+                                                                        top: snapshot.isDragging ? 0 : '0',
+                                                                        left: snapshot.isDragging ? 0 : '0',
                                                                         width: '60px',
-                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60}px`,
-                                                                        zIndex: 1,
+                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}px`,
+                                                                        zIndex: snapshot.isDragging ? 9999 : 1,
+                                                                        transformOrigin: 'center center',
+                                                                        transform: 'scale(1.2)',
                                                                     }}
                                                                 >
                                                                     <Image
                                                                         src={cellData.gate.content}
                                                                         layout="fixed"
                                                                         width={60}
-                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60}
+                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}
                                                                         alt={cellData.gate.type}
+                                                                        draggable={false}
                                                                     />
                                                                 </div>
                                                             )}
@@ -870,7 +852,7 @@ export default function DragAndDropGrid() {
                                                                     {...provided.dragHandleProps}
                                                                     style={{
                                                                         ...provided.draggableProps.style,
-                                                                        cursor: 'pointer',
+                                                                        cursor: 'grab',
                                                                     }}
                                                                 >
                                                                     <Image
@@ -878,6 +860,7 @@ export default function DragAndDropGrid() {
                                                                         width={50}
                                                                         height={50}
                                                                         alt={cellData.gate.type}
+                                                                        draggable={false}
                                                                     />
                                                                 </div>
                                                             )}
