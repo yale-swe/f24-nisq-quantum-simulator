@@ -25,6 +25,10 @@ const initialIcons = [
     { id: 'pauli-x-gate-err', content: '/icons/X_Err.svg', type: 'X_Err', value: 11 },
     { id: 'pauli-y-gate-err', content: '/icons/Y_Err.svg', type: 'Y_Err', value: 12 },
     { id: 'pauli-z-gate-err', content: '/icons/Z_Err.svg', type: 'Z_Err', value: 13 },
+    { id: 'pauli-t-gate-err', content: '/icons/T_Err.svg', type: 'T_Err', value: 14 },
+    { id: 'pauli-t-gate-dagger', content: '/icons/T_Dagger.svg', type: 'T_Dagger', value: 15 },
+    { id: 'cnot-control-down-err', content: '/icons/CNOT_Err.svg', type: 'CNOT_Err', value: 16 },
+    { id: 'cnot-control-up-err', content: '/icons/CNOT_down_Err.svg', type: 'CNOT_Err', value: 16 },
 ];
 
 const INITIAL_COLUMNS = 10;
