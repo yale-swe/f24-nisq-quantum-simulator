@@ -87,7 +87,7 @@ export default function DragAndDropGrid() {
         if (currentLayerType === 'error' && isErrorGate) return true;
         if (currentLayerType === 'normal' && !isErrorGate) return true;
 
-        showTemporaryWarning('Cannot mix error and non-error gates in the same layer');
+        showTemporaryWarning('Cannot mix error and non-error gates in the same layer.');
         return false;
     };
 
@@ -231,7 +231,7 @@ export default function DragAndDropGrid() {
             }
 
             if (isCNOTConflict(destRow, destCol, cellData.gate.type, cellData.gate.id)) {
-                alert('Cannot move gate here due to CNOT gate conflict.');
+                showTemporaryWarning('A CNOT gate occupies this wire. Remove it to place a gate.');
                 return;
             }
 
@@ -239,7 +239,7 @@ export default function DragAndDropGrid() {
                 const targetRow = (destRow + 1) % numRows;
 
                 if (targetRow <= destRow) {
-                    alert('CNOT gate requires two separate wires below the control wire.');
+                    showTemporaryWarning('A CNOT gate requires two adjacent wires.');
                     return;
                 }
 
@@ -310,13 +310,13 @@ export default function DragAndDropGrid() {
                 const targetRow = (destRow + 1) % numRows;
 
                 if (targetRow <= destRow) {
-                    alert('CNOT gate requires two separate wires below the control wire.');
+                    showTemporaryWarning('A CNOT gate requires two adjacent wires.');
                     return;
                 }
             }
 
             if (isCNOTConflict(destRow, destCol, newGate.type)) {
-                alert('Cannot place gate here due to CNOT gate conflict.');
+                showTemporaryWarning('A CNOT gate occupies this wire. Remove it to place a gate.');
                 return;
             }
 
@@ -596,6 +596,7 @@ export default function DragAndDropGrid() {
                                 {provided.placeholder}
                             </div>
                         )}
+
                     </Droppable>
                 </div>
                 {/* Wire Controls */}
