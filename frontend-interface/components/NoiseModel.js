@@ -1,22 +1,60 @@
-import React, { useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as math from 'mathjs';
 
-// Exported utility functions remain the same
+// Exported utility functions
+export const validateNoiseModelLinAlg = (matrices) => {
+    const dimension = matrices[0].length;
+    const identity = math.identity(dimension);
+    let sum = math.zeros(dimension, dimension);
+
+    matrices.forEach(matrix => {
+        const conjugateTranspose = math.conj(math.transpose(matrix));
+        const product = math.multiply(matrix, conjugateTranspose);
+        sum = math.add(sum, product);
+    });
+
+    return math.deepEqual(sum, identity);
+};
+
+export const validateNoiseModelSyntax = (fileData) => {
+    if (typeof fileData !== 'string') return false;
+
+    try {
+        const matrices = JSON.parse(fileData);
+        if (!Array.isArray(matrices)) return false;
+
+        for (let matrix of matrices) {
+            if (!Array.isArray(matrix) || matrix.length === 0) return false;
+            for (let row of matrix) {
+                if (!Array.isArray(row) || row.length === 0) return false;
+                if (!row.every(element => typeof element === 'number')) return false;
+            }
+        }
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
+export const processNoiseModel = (fileData) => {
+    if (!validateNoiseModelSyntax(fileData)) {
+        console.error("Error in Noise Model Syntax");
+        return null;
+    }
+
+    const parsedMatrix = JSON.parse(fileData);
+    if (!validateNoiseModelLinAlg(parsedMatrix)) {
+        console.error("Linear Algebra Error in Noise Model");
+        return null;
+    }
+
+    return parsedMatrix;
+};
 
 export default function NoiseModel() {
-    const fileContentRef = useRef('');
-    const modelMatrixRef = useRef(null);
-    const statusRef = useRef('');
-
-    const setStatus = (message) => {
-        statusRef.current = message;
-        document.getElementById('status').textContent = message; // Update DOM directly
-    };
-
-    const setFileContent = (content) => {
-        fileContentRef.current = content;
-        document.getElementById('fileContent').textContent = content; // Update DOM directly
-    };
+    const [fileContent, setFileContent] = useState('');
+    const [modelMatrix, setModelMatrix] = useState(null);
+    const [status, setStatus] = useState('');
 
     const validateFileType = (file) => {
         return file.type === 'text/plain';
@@ -37,22 +75,14 @@ export default function NoiseModel() {
         }
 
         const reader = new FileReader();
-        reader.onload = async (e) => {
+        reader.onload = (e) => {
             const fileData = e.target.result;
             setFileContent(fileData);
-
+            
             const result = processNoiseModel(fileData);
             if (result) {
                 setStatus('Noise Model Read Successfully');
-                modelMatrixRef.current = result;
-
-                // Save the model
-                try {
-                    await saveModel(result);
-                } catch (error) {
-                    console.error('Error posting matrix data:', error);
-                    setStatus('Error posting matrix data');
-                }
+                setModelMatrix(result);
             } else {
                 setStatus('Error processing noise model');
             }
@@ -62,6 +92,12 @@ export default function NoiseModel() {
         };
         reader.readAsText(file);
     };
+
+    useEffect(() => {
+        if (modelMatrix) {
+            saveModel(modelMatrix);
+        }
+    }, [modelMatrix]);
 
     const saveModel = async (matrix) => {
         console.log("Posting Matrix Data:", matrix);
@@ -142,8 +178,8 @@ export default function NoiseModel() {
                     Load Noise Model
                 </button>
             </div>
-            <p id="status"></p>
-            <pre id="fileContent"></pre>
+            <p>{status}</p>
+            <pre>{fileContent}</pre>
         </div>
     );
 }

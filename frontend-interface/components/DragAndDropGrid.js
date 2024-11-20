@@ -564,18 +564,17 @@ export default function DragAndDropGrid() {
                                                                         cursor: 'pointer',
                                                                         position: 'absolute',
                                                                         top: 0,
-                                                                        left: '50%',
-                                                                        transform: 'translateX(-50%)',
-                                                                        width: '70px',
-                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 65 + 60}px`,
+                                                                        left: 0,
+                                                                        width: '60px',
+                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}px`,
                                                                         zIndex: 1,
                                                                     }}
                                                                 >
                                                                     <Image
                                                                         src={cellData.gate.content}
                                                                         layout="fixed"
-                                                                        width={70}
-                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 65 + 60}
+                                                                        width={60}
+                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}
                                                                         alt={cellData.gate.type}
                                                                     />
                                                                 </div>
