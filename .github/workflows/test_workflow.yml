@@ -52,4 +52,4 @@ jobs:
 
     - name: Run Jest Tests
       run: |
-        npx jest "frontend-interface/components/__tests__/DragAndDropGrid.test.js"
+        npx jest "frontend-interface/components/__tests__/NoiseModel.test.js"
