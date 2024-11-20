@@ -563,10 +563,11 @@ export default function DragAndDropGrid() {
                                                                         ...provided.draggableProps.style,
                                                                         cursor: 'pointer',
                                                                         position: 'absolute',
-                                                                        top: 0,
-                                                                        left: 0,
+                                                                        top: '30px',
+                                                                        left: '50%',
+                                                                        transform: 'translateX(-50%)',
                                                                         width: '60px',
-                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}px`,
+                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60}px`,
                                                                         zIndex: 1,
                                                                     }}
                                                                 >
@@ -574,7 +575,7 @@ export default function DragAndDropGrid() {
                                                                         src={cellData.gate.content}
                                                                         layout="fixed"
                                                                         width={60}
-                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}
+                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60}
                                                                         alt={cellData.gate.type}
                                                                     />
                                                                 </div>
