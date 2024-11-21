@@ -172,7 +172,9 @@ For issues and feature requests, please use the GitHub issue tracker or contact 
 # Acknowledgments
 
 • Built with Next.js and Python.
+
 • Quantum computing libraries: Qiskit, QuTiP.
+
 • Visualization tools: Matplotlib, Plotly.
 
 # Contact
