@@ -37,9 +37,11 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
 
 ### Setup
 1. Clone the repository:
-```bash
+```
+bash
 git clone https://github.com/rohansk1/nisq_private.git
-cd nisq_private```
+cd nisq_private
+```
 
 2.	Install Python dependencies:
 ```pip install -r requirements.txt```
