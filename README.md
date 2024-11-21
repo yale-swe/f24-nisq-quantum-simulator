@@ -46,8 +46,10 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
 
 3.	Install JavaScript dependencies:
 
-```cd frontend-interface
-npm install```
+```
+cd frontend-interface
+npm install
+```
 
 # Usage
 
