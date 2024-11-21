@@ -880,12 +880,12 @@ export default function DragAndDropGrid() {
                 </div>
 
                 {/* Simulation Button */}
-                <div style={{ padding: '20px' }}>
+                <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
                     <button
                         onClick={handleSimulate}
                         style={{
                             padding: '10px 20px',
-                            margin: '20px 0',
+                            margin: '20px 10px',
                             backgroundColor: '#4CAF50',
                             color: 'white',
                             border: 'none',
@@ -895,10 +895,6 @@ export default function DragAndDropGrid() {
                     >
                         Generate Results
                     </button>
-                </div>
-                <DensityPlot plotImageData={simulationResults?.plotImage} />
-                <LoadingOverlay isLoading={isSimulating} />
-                <div style={{ padding: '20px' }}>
                     <button
                         onClick={handlePropagateErrors}
                         style={{
@@ -914,6 +910,8 @@ export default function DragAndDropGrid() {
                         Propagate Errors
                     </button>
                 </div>
+                <DensityPlot plotImageData={simulationResults?.plotImage} />
+                <LoadingOverlay isLoading={isSimulating} />
             </DragDropContext>
         </div>
     );
