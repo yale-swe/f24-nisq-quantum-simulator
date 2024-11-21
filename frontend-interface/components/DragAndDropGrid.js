@@ -361,12 +361,14 @@ export default function DragAndDropGrid() {
             if (currentLayer.length > 0) {
                 ir.push({
                     gates: currentLayer,
-                    type: layerType // 'error', 'normal', or 'empty'
+                    type: layerType, // 'error', 'normal', or 'empty'
+                    numRows: numRows
                 });
             } else {
                 ir.push({
                     gates: [],
-                    type: 'empty'
+                    type: 'empty',
+                    numRows: numRows
                 });
             }
         }
