@@ -445,14 +445,15 @@ export default function DragAndDropGrid() {
                         }))
                     );
 
-                // First pass: Map original gate positions
-                const originalPositions = {};
+                // Store original CNOT positions and orientations
+                const originalCNOTs = {};
                 grid.forEach((row, rowIndex) => {
                     row.forEach((cell, colIndex) => {
-                        if (cell.gate?.type === 'CNOT') {
-                            originalPositions[colIndex] = {
+                        if (cell.gate?.type === 'CNOT' && cell.gate.wireIndices) {
+                            originalCNOTs[colIndex] = {
                                 control: cell.gate.wireIndices[0],
-                                target: cell.gate.wireIndices[1]
+                                target: cell.gate.wireIndices[1],
+                                content: cell.gate.content // Store the original orientation
                             };
                         }
                     });
@@ -461,43 +462,50 @@ export default function DragAndDropGrid() {
                 result.data.forEach((layer, colIndex) => {
                     layer.gates.forEach(gate => {
                         if (gate[0] === 'CX') {
-                            const [_, returnedControl, returnedTarget] = gate;
+                            const [_, controlFromIR, targetFromIR] = gate;
                             
-                            // Use original positions if this column had a CNOT
-                            let control = returnedControl;
-                            let target = returnedTarget;
-                            
-                            if (originalPositions[colIndex]) {
-                                const original = originalPositions[colIndex];
-                                // Keep the same relative positioning as the original gate
-                                const offset = returnedControl - original.control;
-                                control = original.control;
-                                target = original.target;
+                            // Determine if we should use original CNOT positioning
+                            let control, target, content;
+                            if (originalCNOTs[colIndex]) {
+                                // Preserve original orientation and wire indices
+                                control = originalCNOTs[colIndex].control;
+                                target = originalCNOTs[colIndex].target;
+                                content = originalCNOTs[colIndex].content;
+                            } else {
+                                // For new CNOTs, determine orientation based on control/target positions
+                                control = controlFromIR;
+                                target = targetFromIR;
+                                content = target < control ? '/icons/CNOT_down.svg' : '/icons/CNOT.svg';
                             }
 
-                            const isUpsideDown = target < control;
+                            const gateId = uuidv4();
+                            
+                            // Place control gate
                             newGrid[control][colIndex] = {
                                 gate: {
                                     type: 'CNOT',
-                                    content: isUpsideDown ? '/icons/CNOT_down.svg' : '/icons/CNOT.svg',
-                                    id: uuidv4(),
-                                    wireIndices: [control, target],
+                                    content: content,
+                                    id: gateId,
+                                    wireIndices: [control, target]
                                 },
-                                occupiedBy: uuidv4()
+                                occupiedBy: gateId
                             };
+
+                            // Place target marker
                             newGrid[target][colIndex] = {
                                 gate: null,
-                                occupiedBy: newGrid[control][colIndex].gate.id
+                                occupiedBy: gateId
                             };
                         } else {
                             const [gateType, row] = gate;
+                            const gateId = uuidv4();
                             newGrid[row][colIndex] = {
                                 gate: {
                                     type: `${gateType}_${layer.type === 'error' ? 'Err' : 'Gate'}`,
                                     content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}.svg`,
-                                    id: uuidv4()
+                                    id: gateId
                                 },
-                                occupiedBy: uuidv4()
+                                occupiedBy: gateId
                             };
                         }
                     });
