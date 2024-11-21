@@ -396,6 +396,20 @@ export default function DragAndDropGrid() {
         }
     };
 
+    const resetCircuit = () => {
+        setGrid(Array(numRows)
+            .fill(null)
+            .map(() =>
+                Array(numColumns).fill(null).map(() => ({
+                    gate: null,
+                    occupiedBy: null,
+                }))
+            )
+        );
+        setLayerTypes(Array(numColumns).fill('empty'));
+        setSimulationResults(null);
+    };
+
     // Add this state
     const [propagatedIR, setPropagatedIR] = useState(null);
 
@@ -597,6 +611,19 @@ export default function DragAndDropGrid() {
                         }}
                     >
                         Add Wire
+                    </button>
+                    <button
+                        onClick={resetCircuit}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Reset Circuit
                     </button>
                 </div>
 
