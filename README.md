@@ -168,6 +168,6 @@ For issues and feature requests, please use the GitHub issue tracker or contact 
 
 # Contact
 
-Project Link: https://github.com/rohansk1/nisq_private
+Project Link: https://github.com/yale-swe/f24-nisq-quantum-simulator
 
 For additional documentation and examples, please refer to the Wiki section.
