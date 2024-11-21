@@ -69,7 +69,8 @@ The application is deployed on Render.com. Access the live version at [deploymen
 
 # Project Structure
 
-```nisq_private/
+```
+nisq_private/
 ├── frontend-interface/     # Next.js frontend
 │   ├── app/               # Application routes
 │   ├── components/        # React components
@@ -81,27 +82,25 @@ The application is deployed on Render.com. Access the live version at [deploymen
 ├── visualizations/        # Visualization tools
 │   ├── Density_Plot.py   # Density matrix plotting
 │   └── Bloch_Sphere.py   # Bloch sphere visualization
-└── requirements.txt      # Python dependencies```
+└── requirements.txt      # Python dependencies
+```
 
 # Technical Details
 
-•	Quantum Simulation:
-	•	Density matrix evolution using QuTiP.
-	•	Custom intermediate representation for quantum circuits.
-	•	Support for noise models and error propagation.
-	•	High-fidelity quantum gate implementations.
+• Quantum Simulation:
+	• Density matrix evolution using QuTiP.
+	• Custom intermediate representation for quantum circuits.
+	• Support for noise models and error propagation.
 
-•	Visualization Engine:
-	•	3D visualization using Matplotlib.
-	•	Interactive plots with customizable views.
-	•	Real-time state updates.
-	•	Phase and magnitude representation.
+• Visualization Engine:
+	• 3D visualization using Matplotlib.
+	• Interactive plots with customizable views.
+	• Phase and magnitude representation.
 
-•	Error Handling:
-	•	Pauli error propagation.
-	•	Error gate simplification.
-	•	Automated validation of circuit layers.
-	•	Comprehensive error reporting.
+• Error Handling:
+	• Pauli error propagation.
+	• Error gate simplification.
+	• Comprehensive error reporting.
 
 # Testing
 
@@ -112,39 +111,46 @@ python -m unittest backend/test_evolution.py
 
 # View coverage report
 coverage run -m unittest discover
-coverage report```
+coverage report
+```
 
 # Technologies Used
 
-•	Frontend:
-	•	Next.js 14
-	•	React 18
-	•	mathjs
-	•	@hello-pangea/dnd
-•	Backend:
-	•	NumPy
-	•	QuTiP
-	•	Matplotlib
-	•	Plotly
-	•	Qiskit
+• Frontend:
+	• Next.js 14
+	• React 18
+	• mathjs
+	• @hello-pangea/dnd
+• Backend:
+	• NumPy
+	• QuTiP
+	• Matplotlib
+	• Plotly
+	• Qiskit
 
 # Contributing
 
-1.	Fork the repository.
+1. Fork the repository.
 
-2.	Create a feature branch:
+2. Create a feature branch:
 
-```git checkout -b feature/YourFeature```
+```
+git checkout -b feature/YourFeature
+```
 
-3.	Commit your changes:
+3. Commit your changes:
 
-```git commit -m 'Add YourFeature'```
+```
+git commit -m 'Add YourFeature'
+```
 
-4.	Push to your branch:
+4. Push to your branch:
 
-```git push origin feature/YourFeature```
+```
+git push origin feature/YourFeature
+```
 
-5.	Submit a Pull Request.
+5. Submit a Pull Request.
 
 # License
 
@@ -156,9 +162,9 @@ For issues and feature requests, please use the GitHub issue tracker or contact 
 
 # Acknowledgments
 
-•	Built with Next.js and Python.
-•	Quantum computing libraries: Qiskit, QuTiP.
-•	Visualization tools: Matplotlib, Plotly.
+• Built with Next.js and Python.
+• Quantum computing libraries: Qiskit, QuTiP.
+• Visualization tools: Matplotlib, Plotly.
 
 # Contact
 
