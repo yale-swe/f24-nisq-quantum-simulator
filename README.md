@@ -104,8 +104,11 @@ nisq_private/
 	• Phase and magnitude representation.
 
 • Error Handling:
+
 	• Pauli error propagation.
+ 
 	• Error gate simplification.
+ 
 	• Comprehensive error reporting.
 
 # Testing
