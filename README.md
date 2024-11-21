@@ -87,35 +87,25 @@ nisq_private/
 
 # Technical Details
 
-• Quantum Simulation:
-
-	• Density matrix evolution using QuTiP.
- 
-	• Custom intermediate representation for quantum circuits.
- 
-	• Support for noise models and error propagation.
-
-• Visualization Engine:
-
-	• 3D visualization using Matplotlib.
- 
-	• Interactive plots with customizable views.
- 
-	• Phase and magnitude representation.
-
-• Error Handling:
-
-	• Pauli error propagation.
- 
-	• Error gate simplification.
- 
-	• Comprehensive error reporting.
+- Quantum Simulation:
+  - Density matrix evolution using QuTiP.
+  - Custom intermediate representation for quantum circuits.
+  - Support for noise models and error propagation.
+- Visualization Engine:
+  - 3D visualization using Matplotlib.
+  - Interactive plots with customizable views.
+  - Phase and magnitude representation.
+- Error Handling:
+  - Pauli error propagation.
+  - Error gate simplification.
+  - Comprehensive error reporting.
 
 # Testing
 
 This project maintains high test coverage (94%) with comprehensive unit tests:
 
-```# Run tests
+```
+# Run tests
 python -m unittest backend/test_evolution.py
 
 # View coverage report
@@ -125,22 +115,21 @@ coverage report
 
 # Technologies Used
 
-• Frontend:
-	• Next.js 14
-	• React 18
-	• mathjs
-	• @hello-pangea/dnd
-• Backend:
-	• NumPy
-	• QuTiP
-	• Matplotlib
-	• Plotly
-	• Qiskit
+- Frontend:
+  - Next.js 14
+  - React 18
+  - mathjs
+  - @hello-pangea/dnd
+- Backend:
+  - NumPy
+  - QuTiP
+  - Matplotlib
+  - Plotly
+  - Qiskit
 
 # Contributing
 
 1. Fork the repository.
-
 2. Create a feature branch:
 
 ```
@@ -171,11 +160,9 @@ For issues and feature requests, please use the GitHub issue tracker or contact 
 
 # Acknowledgments
 
-• Built with Next.js and Python.
-
-• Quantum computing libraries: Qiskit, QuTiP.
-
-• Visualization tools: Matplotlib, Plotly.
+- Built with Next.js and Python.
+- Quantum computing libraries: Qiskit, QuTiP.
+- Visualization tools: Matplotlib, Plotly.
 
 # Contact
 
