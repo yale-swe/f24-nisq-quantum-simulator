@@ -854,8 +854,8 @@ export default function DragAndDropGrid() {
                                                                         position: snapshot.isDragging ? 'relative' : 'absolute',
                                                                         top: snapshot.isDragging ? 0 : '0',
                                                                         left: snapshot.isDragging ? 0 : '0',
-                                                                        width: '60px',
-                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}px`,
+                                                                        width: '70px',
+                                                                        height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 62 + 60}px`,
                                                                         zIndex: snapshot.isDragging ? 9999 : 1,
                                                                         transformOrigin: 'center center',
 
@@ -864,8 +864,8 @@ export default function DragAndDropGrid() {
                                                                     <Image
                                                                         src={cellData.gate.content}
                                                                         layout="fixed"
-                                                                        width={60}
-                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 60 + 60}
+                                                                        width={70}
+                                                                        height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 62 + 60}
                                                                         alt={cellData.gate.type}
                                                                         draggable={false}
                                                                     />
