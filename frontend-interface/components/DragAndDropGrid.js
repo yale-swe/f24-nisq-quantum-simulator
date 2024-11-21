@@ -348,10 +348,22 @@ export default function DragAndDropGrid() {
             for (let row = 0; row < numRows; row++) {
                 const cell = grid[row][col];
                 if (cell.gate) {
+                    // Handle CNOT gates
                     if (cell.gate.type === 'CNOT' && cell.gate.wireIndices?.[0] === row) {
-                        currentLayer.push(['CX', ...cell.gate.wireIndices]);
+                        // Get control and target indices directly from wireIndices
+                        const [control, target] = cell.gate.wireIndices;
+                        
+                        // For regular CNOT (control-down), content will be '/icons/CNOT.svg'
+                        // For upside-down CNOT (control-up), content will be '/icons/CNOT_down.svg'
+                        const isUpsideDown = cell.gate.content === '/icons/CNOT_down.svg';
+                        
+                        // If upside-down CNOT, swap control and target
+                        currentLayer.push(['CX', 
+                            isUpsideDown ? target : control,
+                            isUpsideDown ? control : target
+                        ]);
                     } else if (!cell.gate.type.startsWith('CNOT')) {
-                        // Remove '_Gate' and '_Err' suffixes
+                        // Handle other gates
                         const gateType = cell.gate.type.replace('_Gate', '').replace('_Err', '');
                         currentLayer.push([gateType, row]);
                     }
@@ -361,7 +373,7 @@ export default function DragAndDropGrid() {
             if (currentLayer.length > 0) {
                 ir.push({
                     gates: currentLayer,
-                    type: layerType, // 'error', 'normal', or 'empty'
+                    type: layerType,
                     numRows: numRows
                 });
             } else {
@@ -424,7 +436,6 @@ export default function DragAndDropGrid() {
             });
             const result = await response.json();
             if (result.data) {
-                // Create new grid based on the propagated IR
                 const newGrid = Array(numRows)
                     .fill(null)
                     .map(() =>
@@ -434,17 +445,43 @@ export default function DragAndDropGrid() {
                         }))
                     );
 
-                // Update grid based on propagated IR
+                // First pass: Map original gate positions
+                const originalPositions = {};
+                grid.forEach((row, rowIndex) => {
+                    row.forEach((cell, colIndex) => {
+                        if (cell.gate?.type === 'CNOT') {
+                            originalPositions[colIndex] = {
+                                control: cell.gate.wireIndices[0],
+                                target: cell.gate.wireIndices[1]
+                            };
+                        }
+                    });
+                });
+
                 result.data.forEach((layer, colIndex) => {
                     layer.gates.forEach(gate => {
                         if (gate[0] === 'CX') {
-                            const [_, control, target] = gate;
+                            const [_, returnedControl, returnedTarget] = gate;
+                            
+                            // Use original positions if this column had a CNOT
+                            let control = returnedControl;
+                            let target = returnedTarget;
+                            
+                            if (originalPositions[colIndex]) {
+                                const original = originalPositions[colIndex];
+                                // Keep the same relative positioning as the original gate
+                                const offset = returnedControl - original.control;
+                                control = original.control;
+                                target = original.target;
+                            }
+
+                            const isUpsideDown = target < control;
                             newGrid[control][colIndex] = {
                                 gate: {
                                     type: 'CNOT',
-                                    content: '/icons/CNOT.svg',
+                                    content: isUpsideDown ? '/icons/CNOT_down.svg' : '/icons/CNOT.svg',
                                     id: uuidv4(),
-                                    wireIndices: [control, target]
+                                    wireIndices: [control, target],
                                 },
                                 occupiedBy: uuidv4()
                             };
@@ -467,7 +504,7 @@ export default function DragAndDropGrid() {
                 });
 
                 setGrid(newGrid);
-
+                
                 // Update layer types
                 const newLayerTypes = result.data.map(layer => layer.type);
                 setLayerTypes(newLayerTypes);
