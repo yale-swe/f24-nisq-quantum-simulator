@@ -88,13 +88,19 @@ nisq_private/
 # Technical Details
 
 • Quantum Simulation:
+
 	• Density matrix evolution using QuTiP.
+ 
 	• Custom intermediate representation for quantum circuits.
+ 
 	• Support for noise models and error propagation.
 
 • Visualization Engine:
+
 	• 3D visualization using Matplotlib.
+ 
 	• Interactive plots with customizable views.
+ 
 	• Phase and magnitude representation.
 
 • Error Handling:
