@@ -1,30 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     DragDropContext,
     Droppable,
     Draggable,
 } from '@hello-pangea/dnd';
 import Image from 'next/image';
-import { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import DensityPlot from './DensityPlot';
 import LoadingOverlay from './LoadingOverlay';
 
-const initialIcons = [
-    { id: 'cnot-control-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10 },
-    { id: 'cnot-control-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9 },
-    { id: 'hadamard-gate', content: '/icons/H_Gate.svg', type: 'H_Gate', value: 8 },
-    { id: 'pauli-x-gate', content: '/icons/X_Gate.svg', type: 'X_Gate', value: 4 },
-    { id: 'pauli-y-gate', content: '/icons/Y_Gate.svg', type: 'Y_Gate', value: 5 },
-    { id: 'pauli-z-gate', content: '/icons/Z_Gate.svg', type: 'Z_Gate', value: 3 },
-    { id: 'phase-s-gate', content: '/icons/S_Gate.svg', type: 'S_Gate', value: 6 },
-    { id: 'phase-t-gate', content: '/icons/T_Gate.svg', type: 'T_Gate', value: 7 },
-    { id: 'pauli-x-gate-err', content: '/icons/X_Err.svg', type: 'X_Err', value: 11 },
-    { id: 'pauli-y-gate-err', content: '/icons/Y_Err.svg', type: 'Y_Err', value: 12 },
-    { id: 'pauli-z-gate-err', content: '/icons/Z_Err.svg', type: 'Z_Err', value: 13 },
+// Define the different style variants
+const STYLE_VARIANTS = {
+    DEFAULT: '',
+    BLACK_WHITE: '_bw',
+    INVERTED: '_invert'
+};
+
+const createInitialIcons = (styleVariant) => [
+    { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant}.svg`, type: 'H_Gate', value: 8 },
+    { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant}.svg`, type: 'X_Gate', value: 4 },
+    { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant}.svg`, type: 'Y_Gate', value: 5 },
+    { id: 'pauli-z-gate', content: `/icons/Z_Gate${styleVariant}.svg`, type: 'Z_Gate', value: 3 },
+    { id: 'phase-s-gate', content: `/icons/S_Gate${styleVariant}.svg`, type: 'S_Gate', value: 6 },
+    { id: 'phase-t-gate', content: `/icons/T_Gate${styleVariant}.svg`, type: 'T_Gate', value: 7 },
+    // CNOT gates don't use style variants
+    { id: 'cnot-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10, controlUp: true },
+    { id: 'cnot-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9, controlUp: false },
+    { id: 'pauli-x-gate-err', content: `/icons/X_Err${styleVariant}.svg`, type: 'X_Err', value: 11 },
+    { id: 'pauli-y-gate-err', content: `/icons/Y_Err${styleVariant}.svg`, type: 'Y_Err', value: 12 },
+    { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant}.svg`, type: 'Z_Err', value: 13 },
 ];
 
 const INITIAL_COLUMNS = 10;
@@ -33,10 +40,12 @@ const MIN_COLUMNS = 1;
 const MAX_COLUMNS = 20;
 
 export default function DragAndDropGrid() {
-    const [icons, setIcons] = useState(initialIcons);
+    const [selectedStyle, setSelectedStyle] = useState('');
+    const [icons, setIcons] = useState([]);
     const [numRows, setNumRows] = useState(2);
     const [errorWarning, setErrorWarning] = useState("");
     const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS);
+    const [dragAttempts, setDragAttempts] = useState(0);
     const [grid, setGrid] = useState(
         Array(numRows)
             .fill(null)
@@ -47,10 +56,68 @@ export default function DragAndDropGrid() {
                 }))
             )
     );
-    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty')); // 'empty', 'error', or 'normal'
+    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty'));
     const [simulationResults, setSimulationResults] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [showWarning, setShowWarning] = useState(false);
+
+    // Get MAB-selected style on component mount
+    useEffect(() => {
+        const fetchStyle = async () => {
+            try {
+                const response = await fetch('/api/style-select');
+                const data = await response.json();
+                const style = data.selectedStyle || '';
+                setSelectedStyle(style);
+                setIcons(createInitialIcons(style));
+            } catch (error) {
+                console.error('Failed to get style:', error);
+                // Fallback to random selection if API fails
+                const styles = ['', '_bw', '_invert'];
+                const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                setSelectedStyle(randomStyle);
+                setIcons(createInitialIcons(randomStyle));
+            }
+        };
+        fetchStyle();
+    }, []);
+
+
+    // // Get random style on component mount
+    // const selectedStyle = useMemo(() => {
+    //     const styles = ['', '_bw', '_invert'];
+    //     return styles[Math.floor(Math.random() * styles.length)];
+    // }, []);
+
+    // Log stats when user leaves/closes page
+    useEffect(() => {
+        const logStats = async () => {
+            try {
+                await fetch('/api/log-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        style: selectedStyle,
+                        dragCount: dragAttempts
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to log stats:', error);
+            }
+        };
+
+        window.addEventListener('beforeunload', logStats);
+        return () => {
+            window.removeEventListener('beforeunload', logStats);
+            logStats();
+        };
+    }, [selectedStyle, dragAttempts]);
+
+
+    const showTemporaryWarning = (message) => {
+        setErrorWarning(message);
+        setTimeout(() => setErrorWarning(""), 3000);
+    };
 
     const determineLayerType = (column) => {
         let hasErrorGate = false;
@@ -73,12 +140,6 @@ export default function DragAndDropGrid() {
         return 'empty';
     };
 
-    const showTemporaryWarning = (message) => {
-        setErrorWarning(message);
-        setTimeout(() => setErrorWarning(""), 3000); // Hide after 3 seconds
-    };
-
-
     const checkLayerCompatibility = (destCol, gateType) => {
         const currentLayerType = determineLayerType(destCol);
         const isErrorGate = gateType.endsWith('_Err');
@@ -89,6 +150,10 @@ export default function DragAndDropGrid() {
 
         showTemporaryWarning('Cannot mix error and non-error gates in the same layer.');
         return false;
+    };
+
+    const getCNOTImage = (control, target) => {
+        return control < target ? '/icons/CNOT.svg' : '/icons/CNOT_down.svg';
     };
 
     const addLayer = () => {
@@ -162,8 +227,6 @@ export default function DragAndDropGrid() {
 
             setNumRows(prev => prev - 1);
             setGrid(finalGrid);
-
-            // Update layer types after wire removal
             const newLayerTypes = layerTypes.map((_, colIndex) => determineLayerType(colIndex));
             setLayerTypes(newLayerTypes);
         }
@@ -184,6 +247,7 @@ export default function DragAndDropGrid() {
     };
 
     const onDragEnd = async (result) => {
+        setDragAttempts(prev => prev + 1);
         const { source, destination, draggableId } = result;
 
         if (!destination) {
@@ -209,6 +273,7 @@ export default function DragAndDropGrid() {
             }
             return;
         }
+
         if (source.droppableId === destination.droppableId && source.index === destination.index) {
             return;
         }
@@ -216,10 +281,8 @@ export default function DragAndDropGrid() {
         if (source.droppableId.startsWith('cell-') && destination.droppableId.startsWith('cell-')) {
             const [sourceRow, sourceCol] = source.droppableId.split('-').slice(1).map(Number);
             const [destRow, destCol] = destination.droppableId.split('-').slice(1).map(Number);
-
             const cellData = grid[sourceRow][sourceCol];
 
-            // Check layer compatibility when moving gates
             if (!checkLayerCompatibility(destCol, cellData.gate.type)) {
                 return;
             }
@@ -229,85 +292,85 @@ export default function DragAndDropGrid() {
                 return;
             }
 
-            let newGrid = [...grid];
+            // Replace the isCNOTConflict validation check:
+            if (cellData.gate.type === 'CNOT') {
+                const isControlUp = cellData.gate.controlUp;
+                const targetRow = isControlUp ?
+                    (destRow + 1) % numRows :
+                    destRow - 1;  // Simply target the wire above
 
-            if (cellData.gate.type.startsWith('CNOT')) {
-                const targetRow = (destRow + 1) % numRows;
-
-                // Add check for valid target wire
-                if (targetRow <= destRow) {
-                    alert('CNOT gate requires two separate wires below the control wire.');
+                if ((isControlUp && targetRow <= destRow) ||
+                    (!isControlUp && targetRow >= destRow)) {
+                    showTemporaryWarning('Invalid CNOT placement. Check control/target wire positions.');
                     return;
                 }
+                // ... rest of the code
 
-                let newGrid = grid.map((row, rowIndex) => {
-                    const newRow = [...row];
-                    if (newRow[sourceCol].occupiedBy === cellData.gate.id) {
-                        newRow[sourceCol] = { gate: null, occupiedBy: null };
-                    }
-                    return newRow;
+
+                const newGrid = grid.map(row => {
+                    return row.map((cell, colIndex) => {
+                        if (colIndex === sourceCol && cell.occupiedBy === cellData.gate.id) {
+                            return { gate: null, occupiedBy: null };
+                        }
+                        return cell;
+                    });
                 });
 
-                newGrid = newGrid.map((row, rowIndex) => {
-                    const newRow = [...row];
-                    if (rowIndex === destRow) {
-                        newRow[destCol] = {
-                            gate: {
-                                ...cellData.gate,
-                                wireIndices: [destRow, targetRow]
-                            },
-                            occupiedBy: cellData.gate.id,
-                        };
-                    } else if (rowIndex === targetRow) {
-                        newRow[destCol] = {
-                            gate: null,
-                            occupiedBy: cellData.gate.id,
-                        };
-                    }
-                    return newRow;
-                });
+                newGrid[destRow][destCol] = {
+                    gate: {
+                        ...cellData.gate,
+                        wireIndices: [destRow, targetRow]
+                    },
+                    occupiedBy: cellData.gate.id,
+                };
+                newGrid[targetRow][destCol] = {
+                    gate: null,
+                    occupiedBy: cellData.gate.id,
+                };
+
                 setGrid(newGrid);
-            }
-            else {
+            } else {
                 const newGrid = [...grid];
                 newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
                 newGrid[destRow][destCol] = {
                     gate: cellData.gate,
                     occupiedBy: cellData.gate.id,
                 };
-
                 setGrid(newGrid);
             }
 
-            // Update layer types after gate move
             const newLayerTypes = [...layerTypes];
             newLayerTypes[sourceCol] = determineLayerType(sourceCol);
             newLayerTypes[destCol] = determineLayerType(destCol);
             setLayerTypes(newLayerTypes);
-
             return;
         }
 
         if (source.droppableId === 'icons' && destination.droppableId.startsWith('cell-')) {
             const originalIcon = icons.find((icon) => icon.id === draggableId);
-            const newGate = { ...originalIcon, id: uuidv4() };
             const [destRow, destCol] = destination.droppableId.split('-').slice(1).map(Number);
 
-            // Check layer compatibility for new gate placement
-            if (!checkLayerCompatibility(destCol, newGate.type)) {
+            if (!checkLayerCompatibility(destCol, originalIcon.type)) {
                 return;
             }
 
-            let newGrid = [...grid];
+            const newGate = { ...originalIcon, id: uuidv4() };
 
-            if (newGate.type.startsWith('CNOT')) {
-                const targetRow = (destRow + 1) % numRows;
+            if (newGate.type === 'CNOT') {
+                const isControlUp = newGate.controlUp;
+                const targetRow = isControlUp ?
+                    (destRow + 1) % numRows :
+                    (destRow - 1);
 
-                if (targetRow <= destRow) {
-                    showTemporaryWarning('A CNOT gate requires two adjacent wires.');
+                if ((isControlUp && targetRow <= destRow) ||
+                    (!isControlUp && targetRow >= destRow) ||
+                    targetRow < 0 ||
+                    targetRow >= numRows) {
+                    showTemporaryWarning('Invalid CNOT placement. Check control/target wire positions.');
                     return;
                 }
 
+                const newGrid = [...grid];
                 newGrid[destRow][destCol] = {
                     gate: {
                         ...newGate,
@@ -319,24 +382,25 @@ export default function DragAndDropGrid() {
                     gate: null,
                     occupiedBy: newGate.id,
                 };
+                setGrid(newGrid);
             } else {
+                const newGrid = [...grid];
                 newGrid[destRow][destCol] = {
-                    gate: newGate,
+                    gate: {
+                        ...newGate,
+                        content: `/icons/${newGate.type}${selectedStyle}.svg`
+                    },
                     occupiedBy: newGate.id,
                 };
+                setGrid(newGrid);
             }
 
-            setGrid(newGrid);
-
-            // Update layer type after new gate placement
             const newLayerTypes = [...layerTypes];
             newLayerTypes[destCol] = determineLayerType(destCol);
             setLayerTypes(newLayerTypes);
-
             return;
         }
     };
-
     const convertGridToIR = () => {
         const ir = [];
         let currentLayer = [];
@@ -348,41 +412,21 @@ export default function DragAndDropGrid() {
             for (let row = 0; row < numRows; row++) {
                 const cell = grid[row][col];
                 if (cell.gate) {
-                    // Handle CNOT gates
                     if (cell.gate.type === 'CNOT' && cell.gate.wireIndices?.[0] === row) {
-                        // Get control and target indices directly from wireIndices
                         const [control, target] = cell.gate.wireIndices;
-                        
-                        // For regular CNOT (control-down), content will be '/icons/CNOT.svg'
-                        // For upside-down CNOT (control-up), content will be '/icons/CNOT_down.svg'
-                        const isUpsideDown = cell.gate.content === '/icons/CNOT_down.svg';
-                        
-                        // If upside-down CNOT, swap control and target
-                        currentLayer.push(['CX', 
-                            isUpsideDown ? target : control,
-                            isUpsideDown ? control : target
-                        ]);
+                        currentLayer.push(['CX', control, target]);
                     } else if (!cell.gate.type.startsWith('CNOT')) {
-                        // Handle other gates
                         const gateType = cell.gate.type.replace('_Gate', '').replace('_Err', '');
                         currentLayer.push([gateType, row]);
                     }
                 }
             }
 
-            if (currentLayer.length > 0) {
-                ir.push({
-                    gates: currentLayer,
-                    type: layerType,
-                    numRows: numRows
-                });
-            } else {
-                ir.push({
-                    gates: [],
-                    type: 'empty',
-                    numRows: numRows
-                });
-            }
+            ir.push({
+                gates: currentLayer,
+                type: layerType,
+                numRows: numRows
+            });
         }
         return ir;
     };
@@ -422,10 +466,6 @@ export default function DragAndDropGrid() {
         setSimulationResults(null);
     };
 
-    // Add this state
-    const [propagatedIR, setPropagatedIR] = useState(null);
-
-    // Add this handler
     const handlePropagateErrors = async () => {
         try {
             const ir = convertGridToIR();
@@ -445,15 +485,14 @@ export default function DragAndDropGrid() {
                         }))
                     );
 
-                // Store original CNOT positions and orientations
+                // Store original CNOT positions
                 const originalCNOTs = {};
                 grid.forEach((row, rowIndex) => {
                     row.forEach((cell, colIndex) => {
                         if (cell.gate?.type === 'CNOT' && cell.gate.wireIndices) {
                             originalCNOTs[colIndex] = {
                                 control: cell.gate.wireIndices[0],
-                                target: cell.gate.wireIndices[1],
-                                content: cell.gate.content // Store the original orientation
+                                target: cell.gate.wireIndices[1]
                             };
                         }
                     });
@@ -462,36 +501,18 @@ export default function DragAndDropGrid() {
                 result.data.forEach((layer, colIndex) => {
                     layer.gates.forEach(gate => {
                         if (gate[0] === 'CX') {
-                            const [_, controlFromIR, targetFromIR] = gate;
-                            
-                            // Determine if we should use original CNOT positioning
-                            let control, target, content;
-                            if (originalCNOTs[colIndex]) {
-                                // Preserve original orientation and wire indices
-                                control = originalCNOTs[colIndex].control;
-                                target = originalCNOTs[colIndex].target;
-                                content = originalCNOTs[colIndex].content;
-                            } else {
-                                // For new CNOTs, determine orientation based on control/target positions
-                                control = controlFromIR;
-                                target = targetFromIR;
-                                content = target < control ? '/icons/CNOT_down.svg' : '/icons/CNOT.svg';
-                            }
-
+                            const [_, control, target] = gate;
                             const gateId = uuidv4();
-                            
-                            // Place control gate
+
                             newGrid[control][colIndex] = {
                                 gate: {
                                     type: 'CNOT',
-                                    content: content,
+                                    content: getCNOTImage(control, target),
                                     id: gateId,
                                     wireIndices: [control, target]
                                 },
                                 occupiedBy: gateId
                             };
-
-                            // Place target marker
                             newGrid[target][colIndex] = {
                                 gate: null,
                                 occupiedBy: gateId
@@ -502,7 +523,7 @@ export default function DragAndDropGrid() {
                             newGrid[row][colIndex] = {
                                 gate: {
                                     type: `${gateType}_${layer.type === 'error' ? 'Err' : 'Gate'}`,
-                                    content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}.svg`,
+                                    content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle}.svg`,
                                     id: gateId
                                 },
                                 occupiedBy: gateId
@@ -512,7 +533,7 @@ export default function DragAndDropGrid() {
                 });
 
                 setGrid(newGrid);
-                
+
                 // Update layer types
                 const newLayerTypes = result.data.map(layer => layer.type);
                 setLayerTypes(newLayerTypes);
@@ -522,7 +543,7 @@ export default function DragAndDropGrid() {
             alert('Error propagating errors: ' + error.message);
         }
     };
-    // Add this helper function
+
     const updateGridFromPropagatedIR = (propagatedIR) => {
         const newGrid = [...grid];
 
@@ -530,27 +551,27 @@ export default function DragAndDropGrid() {
             layer.gates.forEach(gate => {
                 if (gate[0] === 'CX') {
                     const [_, control, target] = gate;
-                    // Handle CNOT gates
+                    const gateId = uuidv4();
+
                     newGrid[control][colIndex] = {
                         gate: {
                             type: 'CNOT',
-                            content: '/icons/CNOT.svg',
-                            id: uuidv4(),
+                            content: getCNOTImage(control, target),
+                            id: gateId,
                             wireIndices: [control, target]
                         },
-                        occupiedBy: uuidv4()
+                        occupiedBy: gateId
                     };
                     newGrid[target][colIndex] = {
                         gate: null,
-                        occupiedBy: newGrid[control][colIndex].gate.id
+                        occupiedBy: gateId
                     };
                 } else {
                     const [gateType, row] = gate;
-                    // Handle single-qubit gates
                     newGrid[row][colIndex] = {
                         gate: {
                             type: `${gateType}_${layer.type === 'error' ? 'Err' : 'Gate'}`,
-                            content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}.svg`,
+                            content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle}.svg`,
                             id: uuidv4()
                         },
                         occupiedBy: uuidv4()
@@ -561,11 +582,13 @@ export default function DragAndDropGrid() {
 
         setGrid(newGrid);
     };
+    // The rest of your component remains largely the same, 
+    // just update the image paths to use styleVariant where appropriate
 
     return (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }} >
             {/* Title */}
-            <div style={{
+            < div style={{
                 padding: '40px 20px',
                 textAlign: 'center',
                 borderBottom: '2px solid #eaeaea',
@@ -590,7 +613,7 @@ export default function DragAndDropGrid() {
                     Design and simulate quantum circuits <br />
                     in a noisy intermediate-scale quantum environment.
                 </p>
-            </div>
+            </div >
 
             <DragDropContext onDragEnd={onDragEnd}>
                 {/* Icons section */}
@@ -628,7 +651,7 @@ export default function DragAndDropGrid() {
                                                     width={50}
                                                     height={50}
                                                     alt={icon.type}
-                                                    draggable={false} // Prevent default drag behavior
+                                                    draggable={false}
                                                 />
                                             </div>
                                         )}
@@ -637,9 +660,9 @@ export default function DragAndDropGrid() {
                                 {provided.placeholder}
                             </div>
                         )}
-
                     </Droppable>
                 </div>
+
                 {/* Wire Controls */}
                 <div style={{ padding: '20px' }}>
                     <button
@@ -690,26 +713,23 @@ export default function DragAndDropGrid() {
                             gridTemplateColumns: `repeat(${numColumns}, 60px)`,
                             width: '100%'
                         }}>
-                            {Array.from({ length: numColumns }).map((_, colIndex) => {
-                                const layerType = determineLayerType(colIndex);
-                                return (
-                                    <div
-                                        key={`layer-indicator-${colIndex}`}
-                                        style={{
-                                            textAlign: 'center',
-                                            fontSize: '12px',
-                                            fontWeight: 'bold',
-                                            color: layerType === 'error' ? '#ff4444' :
-                                                layerType === 'normal' ? '#ffd700' :
-                                                    '#4CAF50'
-                                        }}
-                                    >
-                                        {layerType === 'error' ? 'Error' :
-                                            layerType === 'normal' ? 'Gate' :
-                                                'Empty'}
-                                    </div>
-                                );
-                            })}
+                            {Array.from({ length: numColumns }).map((_, colIndex) => (
+                                <div
+                                    key={`layer-indicator-${colIndex}`}
+                                    style={{
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        color: layerTypes[colIndex] === 'error' ? '#ff4444' :
+                                            layerTypes[colIndex] === 'normal' ? '#ffd700' :
+                                                '#4CAF50'
+                                    }}
+                                >
+                                    {layerTypes[colIndex] === 'error' ? 'Error' :
+                                        layerTypes[colIndex] === 'normal' ? 'Gate' :
+                                            'Empty'}
+                                </div>
+                            ))}
                         </div>
 
                         {/* Layer Separators */}
@@ -767,22 +787,7 @@ export default function DragAndDropGrid() {
                             </button>
                         </div>
 
-                        {/* Warning Message */}
-                        {showWarning && (
-                            <div style={{
-                                position: 'absolute',
-                                right: '-250px',
-                                top: '50px',
-                                backgroundColor: '#ffeb3b',
-                                padding: '10px',
-                                borderRadius: '4px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                zIndex: 3,
-                                maxWidth: '200px'
-                            }}>
-                                Cannot remove layer containing gates
-                            </div>
-                        )}
+                        {/* Warning Messages */}
                         {(showWarning || errorWarning) && (
                             <div style={{
                                 position: 'absolute',
@@ -802,7 +807,6 @@ export default function DragAndDropGrid() {
                         {/* Horizontal wires with remove buttons */}
                         {Array.from({ length: numRows }).map((_, rowIndex) => (
                             <div key={`wire-container-${rowIndex}`} style={{ position: 'relative' }}>
-                                {/* Remove wire button */}
                                 {numRows > 1 && (
                                     <button
                                         onClick={() => removeWire(rowIndex)}
@@ -831,9 +835,7 @@ export default function DragAndDropGrid() {
                                         ×
                                     </button>
                                 )}
-                                {/* Wire line */}
                                 <div
-                                    key={`wire-${rowIndex}`}
                                     style={{
                                         position: 'absolute',
                                         left: 0,
@@ -903,15 +905,17 @@ export default function DragAndDropGrid() {
                                                                         height: `${Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 62 + 60}px`,
                                                                         zIndex: snapshot.isDragging ? 9999 : 1,
                                                                         transformOrigin: 'center center',
-
                                                                     }}
                                                                 >
                                                                     <Image
-                                                                        src={cellData.gate.content}
+                                                                        src={getCNOTImage(
+                                                                            cellData.gate.wireIndices[0],
+                                                                            cellData.gate.wireIndices[1]
+                                                                        )}
                                                                         layout="fixed"
                                                                         width={70}
                                                                         height={Math.abs(cellData.gate.wireIndices[1] - cellData.gate.wireIndices[0]) * 62 + 60}
-                                                                        alt={cellData.gate.type}
+                                                                        alt="CNOT gate"
                                                                         draggable={false}
                                                                     />
                                                                 </div>
@@ -951,7 +955,7 @@ export default function DragAndDropGrid() {
                     </div>
                 </div>
 
-                {/* Simulation Button */}
+                {/* Action Buttons */}
                 <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
                     <button
                         onClick={handleSimulate}
@@ -982,9 +986,11 @@ export default function DragAndDropGrid() {
                         Propagate Errors
                     </button>
                 </div>
+
+                {/* Results Display */}
                 <DensityPlot plotImageData={simulationResults?.plotImage} />
                 <LoadingOverlay isLoading={isSimulating} />
             </DragDropContext>
-        </div>
+        </div >
     );
 }
