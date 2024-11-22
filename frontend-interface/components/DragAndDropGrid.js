@@ -14,24 +14,24 @@ import LoadingOverlay from './LoadingOverlay';
 
 // Define the different style variants
 const STYLE_VARIANTS = {
-    DEFAULT: '',
+    DEFAULT: 'default',
     BLACK_WHITE: '_bw',
     INVERTED: '_invert'
 };
 
 const createInitialIcons = (styleVariant) => [
-    { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant}.svg`, type: 'H_Gate', value: 8 },
-    { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant}.svg`, type: 'X_Gate', value: 4 },
-    { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant}.svg`, type: 'Y_Gate', value: 5 },
-    { id: 'pauli-z-gate', content: `/icons/Z_Gate${styleVariant}.svg`, type: 'Z_Gate', value: 3 },
-    { id: 'phase-s-gate', content: `/icons/S_Gate${styleVariant}.svg`, type: 'S_Gate', value: 6 },
-    { id: 'phase-t-gate', content: `/icons/T_Gate${styleVariant}.svg`, type: 'T_Gate', value: 7 },
+    { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'H_Gate', value: 8 },
+    { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Gate', value: 4 },
+    { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Gate', value: 5 },
+    { id: 'pauli-z-gate', content: `/icons/Z_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Gate', value: 3 },
+    { id: 'phase-s-gate', content: `/icons/S_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'S_Gate', value: 6 },
+    { id: 'phase-t-gate', content: `/icons/T_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'T_Gate', value: 7 },
     // CNOT gates don't use style variants
     { id: 'cnot-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10, controlUp: true },
     { id: 'cnot-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9, controlUp: false },
-    { id: 'pauli-x-gate-err', content: `/icons/X_Err${styleVariant}.svg`, type: 'X_Err', value: 11 },
-    { id: 'pauli-y-gate-err', content: `/icons/Y_Err${styleVariant}.svg`, type: 'Y_Err', value: 12 },
-    { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant}.svg`, type: 'Z_Err', value: 13 },
+    { id: 'pauli-x-gate-err', content: `/icons/X_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Err', value: 11 },
+    { id: 'pauli-y-gate-err', content: `/icons/Y_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Err', value: 12 },
+    { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Err', value: 13 },
 ];
 
 const INITIAL_COLUMNS = 10;
@@ -67,21 +67,19 @@ export default function DragAndDropGrid() {
             try {
                 const response = await fetch('/api/style-select');
                 const data = await response.json();
-                const style = data.selectedStyle || '';
+                const style = data.selectedStyle === '' ? 'default' : data.selectedStyle;
                 setSelectedStyle(style);
-                setIcons(createInitialIcons(style));
+                // When creating icons, convert 'default' back to empty string for the file paths
+                setIcons(createInitialIcons(style === 'default' ? '' : style));
             } catch (error) {
                 console.error('Failed to get style:', error);
-                // Fallback to random selection if API fails
-                const styles = ['', '_bw', '_invert'];
-                const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-                setSelectedStyle(randomStyle);
-                setIcons(createInitialIcons(randomStyle));
+                // Fallback to default style
+                setSelectedStyle('default');
+                setIcons(createInitialIcons(''));
             }
         };
         fetchStyle();
     }, []);
-
 
     // // Get random style on component mount
     // const selectedStyle = useMemo(() => {
@@ -90,28 +88,6 @@ export default function DragAndDropGrid() {
     // }, []);
 
     // Log stats when user leaves/closes page
-    useEffect(() => {
-        const logStats = async () => {
-            try {
-                await fetch('/api/log-stats', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        style: selectedStyle,
-                        dragCount: dragAttempts
-                    })
-                });
-            } catch (error) {
-                console.error('Failed to log stats:', error);
-            }
-        };
-
-        window.addEventListener('beforeunload', logStats);
-        return () => {
-            window.removeEventListener('beforeunload', logStats);
-            logStats();
-        };
-    }, [selectedStyle, dragAttempts]);
 
 
     const showTemporaryWarning = (message) => {
@@ -247,8 +223,8 @@ export default function DragAndDropGrid() {
     };
 
     const onDragEnd = async (result) => {
-        setDragAttempts(prev => prev + 1);
         const { source, destination, draggableId } = result;
+
 
         if (!destination) {
             if (source.droppableId.startsWith('cell-')) {
@@ -347,6 +323,22 @@ export default function DragAndDropGrid() {
         }
 
         if (source.droppableId === 'icons' && destination.droppableId.startsWith('cell-')) {
+            if (source.droppableId === 'icons') {
+                setDragAttempts(prev => prev + 1);
+                try {
+                    await fetch('/api/log-stats', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            style: selectedStyle,
+                            dragCount: dragAttempts + 1  // +1 because state hasn't updated yet
+                        })
+                    });
+                } catch (error) {
+                    console.error('Failed to log stats:', error);
+                }
+            }
+
             const originalIcon = icons.find((icon) => icon.id === draggableId);
             const [destRow, destCol] = destination.droppableId.split('-').slice(1).map(Number);
 
@@ -388,7 +380,7 @@ export default function DragAndDropGrid() {
                 newGrid[destRow][destCol] = {
                     gate: {
                         ...newGate,
-                        content: `/icons/${newGate.type}${selectedStyle}.svg`
+                        content: `/icons/${newGate.type}${selectedStyle === 'default' ? '' : selectedStyle}.svg`
                     },
                     occupiedBy: newGate.id,
                 };
@@ -523,7 +515,7 @@ export default function DragAndDropGrid() {
                             newGrid[row][colIndex] = {
                                 gate: {
                                     type: `${gateType}_${layer.type === 'error' ? 'Err' : 'Gate'}`,
-                                    content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle}.svg`,
+                                    content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle === 'default' ? '' : selectedStyle}.svg`,
                                     id: gateId
                                 },
                                 occupiedBy: gateId
@@ -571,7 +563,7 @@ export default function DragAndDropGrid() {
                     newGrid[row][colIndex] = {
                         gate: {
                             type: `${gateType}_${layer.type === 'error' ? 'Err' : 'Gate'}`,
-                            content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle}.svg`,
+                            content: `/icons/${gateType}${layer.type === 'error' ? '_Err' : '_Gate'}${selectedStyle === 'default' ? '' : selectedStyle}.svg`,
                             id: uuidv4()
                         },
                         occupiedBy: uuidv4()

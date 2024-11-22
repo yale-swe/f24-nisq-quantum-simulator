@@ -1,11 +1,10 @@
-// app/api/style-select/route.js
 import fs from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 
 // Style options and their rewards tracking
 const STYLES = {
-    DEFAULT: '',
+    DEFAULT: 'default',  // Changed from empty string to 'default'
     BLACK_WHITE: '_bw',
     INVERTED: '_invert'
 };
@@ -66,7 +65,13 @@ function analyzeStats() {
 
 function selectStyle() {
     const EPSILON = 0.1;
+    const DEFAULT_BIAS = 0.2;
     const { stats, totalTrials } = analyzeStats();
+
+    // First, check if we should use the default style based on DEFAULT_BIAS
+    if (Math.random() < DEFAULT_BIAS) {
+        return STYLES.DEFAULT;
+    }
 
     // Exploration: random selection with probability EPSILON
     if (Math.random() < EPSILON) {
@@ -74,7 +79,7 @@ function selectStyle() {
         return styles[Math.floor(Math.random() * styles.length)];
     }
 
-    // Exploitation: UCB1 algorithm
+    // Exploitation: Modified UCB1 algorithm with bias towards default
     let bestStyle = '';
     let bestUCB = -Infinity;
 
@@ -85,8 +90,11 @@ function selectStyle() {
         if (armStats.count === 0) {
             ucb = Infinity; // Always try unused arms
         } else {
-            // UCB1 formula: average + sqrt(2 * ln(totalTrials) / armTrials)
+            // UCB1 formula with bias for default style
             ucb = armStats.average + Math.sqrt(2 * Math.log(totalTrials) / armStats.count);
+            if (style === STYLES.DEFAULT) {
+                ucb *= 1.1; // Increase UCB score for default style by 10%
+            }
         }
 
         if (ucb > bestUCB) {
@@ -98,7 +106,8 @@ function selectStyle() {
     return bestStyle;
 }
 
-export async function GET() {
+// Export the GET function correctly
+export async function GET(request) {
     try {
         const { stats } = analyzeStats();
         const selectedStyle = selectStyle();
