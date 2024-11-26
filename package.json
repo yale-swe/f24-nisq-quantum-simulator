@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:website": "cd frontend-interface && node ../node_modules/next/dist/bin/next dev && cd ..",
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "dev:website": "cd frontend-interface && next dev",
+    "build": "cd frontend-interface && next build",
+    "start": "cd frontend-interface && next start",
+    "lint": "cd frontend-interface && next lint",
     "test": "jest"
   },
   "dependencies": {
