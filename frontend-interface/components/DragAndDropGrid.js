@@ -577,14 +577,14 @@ export default function DragAndDropGrid() {
     };
 
     return (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }} >
-            {/* Title */}
-            < div style={{
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
+            <div style={{
                 padding: '40px 20px',
                 textAlign: 'center',
                 borderBottom: '2px solid #eaeaea',
                 background: 'linear-gradient(to right, #f8f9fa, #e9ecef)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                position: 'relative'  // Added to enable absolute positioning of logo
             }}>
                 <h1 style={{
                     fontSize: '2.5rem',
@@ -604,8 +604,20 @@ export default function DragAndDropGrid() {
                     Design and simulate quantum circuits <br />
                     in a noisy intermediate-scale quantum environment.
                 </p>
+                <div style={{
+                    position: 'absolute',
+                    left: '20px',
+                    bottom: '20px',
+                }}>
+                    <Image
+                        src="/icons/logo.svg"
+                        alt="NISQ Quantum Simulator Logo"
+                        width={100}
+                        height={100}
+                        priority
+                    />
+                </div>
             </div>
-
             <DragDropContext onDragEnd={onDragEnd}>
                 {/* Icons section */}
                 <div style={{ padding: '20px' }}>
