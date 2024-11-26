@@ -1,12 +1,14 @@
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
     images: {
         unoptimized: true,
     },
-    serverOptions: {
-        port: parseInt(process.env.PORT || '10000', 10)
+    experimental: {
+        serverActions: true,
     }
 }
 
-module.exports = nextConfig
+// Use export default instead of module.exports
+export default nextConfig;
