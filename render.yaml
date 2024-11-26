@@ -1,9 +1,12 @@
+# render.yaml
 services:
   - type: web
     name: quantum-simulator
     env: node
-    buildCommand: npm install && cd frontend-interface && npm run build
+    buildCommand: npm install && cd frontend-interface && npx next build 
     startCommand: cd frontend-interface && npx next start -p $PORT
     envVars:
+      - key: PORT
+        value: "10000"
       - key: NODE_ENV
-        value: production
+        value: "production"
