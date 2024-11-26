@@ -231,15 +231,25 @@ export default function DragAndDropGrid() {
                         });
                     });
                     setGrid(newGrid);
+
+                    // Use the newGrid to determine the layer type
+                    const hasAnyGate = newGrid.some(row =>
+                        row[sourceCol].gate !== null || row[sourceCol].occupiedBy !== null
+                    );
                     const newLayerTypes = [...layerTypes];
-                    newLayerTypes[sourceCol] = determineLayerType(sourceCol);
+                    newLayerTypes[sourceCol] = hasAnyGate ? determineLayerType(sourceCol) : 'empty';
                     setLayerTypes(newLayerTypes);
                 } else {
                     const newGrid = [...grid];
                     newGrid[sourceRow][sourceCol] = { gate: null, occupiedBy: null };
                     setGrid(newGrid);
+
+                    // Use the newGrid to determine the layer type
+                    const hasAnyGate = newGrid.some(row =>
+                        row[sourceCol].gate !== null || row[sourceCol].occupiedBy !== null
+                    );
                     const newLayerTypes = [...layerTypes];
-                    newLayerTypes[sourceCol] = determineLayerType(sourceCol);
+                    newLayerTypes[sourceCol] = hasAnyGate ? determineLayerType(sourceCol) : 'empty';
                     setLayerTypes(newLayerTypes);
                 }
             }
