@@ -2,10 +2,8 @@ services:
   - type: web
     name: quantum-simulator
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install && cd frontend-interface && npm run build
+    startCommand: cd frontend-interface && npx next start -p $PORT
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
