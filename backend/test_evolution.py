@@ -27,6 +27,7 @@ Tests include both precise quantum state verification and full pipeline testing
 through the simulate_quantum_circuit function.
 """
 
+
 class TestQuantumCircuitEvolution(unittest.TestCase):
     def setUp(self):
         self.no_ops = [qt.tensor(I, I)]
@@ -36,10 +37,10 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         def is_valid_base64_png(b64str):
             try:
                 decoded = base64.b64decode(b64str)
-                return decoded.startswith(b'\x89PNG')
+                return decoded.startswith(b"\x89PNG")
             except:
                 return False
-        
+
         self.is_valid_base64_png = is_valid_base64_png
 
     def assertStateAlmostEqual(self, state1, state2):
@@ -54,25 +55,33 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         # Test X gate on all basis states
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("X", 0)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("X", 0)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(one, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("X", 0)])], qt.ket2dm(qt.tensor(one, zero)), self.no_ops
+                [self.create_layer([("X", 0)])],
+                qt.ket2dm(qt.tensor(one, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(zero, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("X", 0)])], qt.ket2dm(qt.tensor(plus, zero)), self.no_ops
+                [self.create_layer([("X", 0)])],
+                qt.ket2dm(qt.tensor(plus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(plus, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("X", 0)])], qt.ket2dm(qt.tensor(minus, zero)), self.no_ops
+                [self.create_layer([("X", 0)])],
+                qt.ket2dm(qt.tensor(minus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(-minus, zero)),
         )
@@ -80,25 +89,33 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         # Test Z gate on all basis states
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Z", 0)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("Z", 0)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(zero, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Z", 0)])], qt.ket2dm(qt.tensor(one, zero)), self.no_ops
+                [self.create_layer([("Z", 0)])],
+                qt.ket2dm(qt.tensor(one, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(-one, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Z", 0)])], qt.ket2dm(qt.tensor(plus, zero)), self.no_ops
+                [self.create_layer([("Z", 0)])],
+                qt.ket2dm(qt.tensor(plus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(minus, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Z", 0)])], qt.ket2dm(qt.tensor(minus, zero)), self.no_ops
+                [self.create_layer([("Z", 0)])],
+                qt.ket2dm(qt.tensor(minus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(plus, zero)),
         )
@@ -106,25 +123,33 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         # Test H gate on all basis states
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("H", 0)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("H", 0)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(plus, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("H", 0)])], qt.ket2dm(qt.tensor(one, zero)), self.no_ops
+                [self.create_layer([("H", 0)])],
+                qt.ket2dm(qt.tensor(one, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(minus, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("H", 0)])], qt.ket2dm(qt.tensor(plus, zero)), self.no_ops
+                [self.create_layer([("H", 0)])],
+                qt.ket2dm(qt.tensor(plus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(zero, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("H", 0)])], qt.ket2dm(qt.tensor(minus, zero)), self.no_ops
+                [self.create_layer([("H", 0)])],
+                qt.ket2dm(qt.tensor(minus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(one, zero)),
         )
@@ -132,25 +157,33 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         # Test Y gate on all basis states
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Y", 0)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("Y", 0)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(1j * one, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Y", 0)])], qt.ket2dm(qt.tensor(one, zero)), self.no_ops
+                [self.create_layer([("Y", 0)])],
+                qt.ket2dm(qt.tensor(one, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(-1j * zero, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Y", 0)])], qt.ket2dm(qt.tensor(plus, zero)), self.no_ops
+                [self.create_layer([("Y", 0)])],
+                qt.ket2dm(qt.tensor(plus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(1j * minus, zero)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("Y", 0)])], qt.ket2dm(qt.tensor(minus, zero)), self.no_ops
+                [self.create_layer([("Y", 0)])],
+                qt.ket2dm(qt.tensor(minus, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(-1j * plus, zero)),
         )
@@ -158,13 +191,17 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         # Test gates on second qubit
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("X", 1)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("X", 1)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(zero, one)),
         )
         self.assertStateAlmostEqual(
             rep_to_evolution(
-                [self.create_layer([("H", 1)])], qt.ket2dm(qt.tensor(zero, zero)), self.no_ops
+                [self.create_layer([("H", 1)])],
+                qt.ket2dm(qt.tensor(zero, zero)),
+                self.no_ops,
             ),
             qt.ket2dm(qt.tensor(zero, plus)),
         )
@@ -257,7 +294,9 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
 
         # Test invalid input state
         with self.assertRaises(TypeError):
-            rep_to_evolution([self.create_layer([("X", 0)])], qt.basis(2, 0), self.no_ops)
+            rep_to_evolution(
+                [self.create_layer([("X", 0)])], qt.basis(2, 0), self.no_ops
+            )
 
     def test_complex_serialization(self):
         # Test complex number serialization
@@ -273,6 +312,7 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
         self.assertEqual(len(serialized[0]), 2)
         self.assertEqual(serialized[0][0]["real"], 1.0)
         self.assertEqual(serialized[0][0]["imag"], 1.0)
+
 
 if __name__ == "__main__":
     unittest.main()

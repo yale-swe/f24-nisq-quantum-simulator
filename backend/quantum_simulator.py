@@ -188,8 +188,8 @@ def rep_to_evolution(circuit_rep, input_state, c_ops):
         )
 
     current_state = input_state
-
-    for layer in circuit_rep:
+    layers = [x["gates"] for x in circuit_rep]
+    for layer in layers:
         one_qubit_gates = []
         one_qubit_indices = []
 
@@ -267,7 +267,9 @@ def validate_circuit_layers(circuit_rep):
     Returns:
         None if the circuit is valid.
     """
-    for layer_idx, layer in enumerate(circuit_rep):
+    layers = [x["gates"] for x in circuit_rep]
+
+    for layer_idx, layer in enumerate(layers):
         # Keep track of which qubits are used in this layer
         used_qubits = set()
 
@@ -299,7 +301,6 @@ def simulate_quantum_circuit(circuit_ir):
     # Calculate number of qubits from the circuit
     # print(circuit_ir)
     num_qubits = max([x["numRows"] for x in circuit_ir])
-    circuit_ir = [x["gates"] for x in circuit_ir]
 
     validate_circuit_layers(circuit_ir)
 
