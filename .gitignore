@@ -6,3 +6,4 @@ outputs.json
 *log.txt*
 __pycache__/
 visualizations/__pycache__/
+frontend-interface/data/stats.txt
