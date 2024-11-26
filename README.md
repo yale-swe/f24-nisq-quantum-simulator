@@ -2,6 +2,8 @@
 
 A sophisticated web-based quantum circuit simulator designed for experimenting with noisy intermediate-scale quantum (NISQ) environments. This project combines a Next.js frontend with a Python backend to provide an interactive platform for quantum circuit design, simulation, and visualization.
 
+Website: https://f24-nisq-quantum-simulator.onrender.com/
+
 ## Features
 - **Circuit Design & Simulation**:
   - Interactive Circuit Designer: Drag-and-drop interface for building quantum circuits.
