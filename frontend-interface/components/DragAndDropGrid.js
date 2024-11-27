@@ -1,70 +1,77 @@
-'use client';
+'use client'; // Next.js directive to render this component on the client side.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // React hooks for state management and lifecycle effects.
 import {
-    DragDropContext,
-    Droppable,
-    Draggable,
+    DragDropContext, // Context for drag-and-drop operations.
+    Droppable,       // Container where draggable items can be dropped.
+    Draggable        // Item that can be dragged.
 } from '@hello-pangea/dnd';
-import Image from 'next/image';
-import { v4 as uuidv4 } from 'uuid';
+import Image from 'next/image'; // Optimized image component from Next.js.
+import { v4 as uuidv4 } from 'uuid'; // Library to generate unique IDs for gates.
 
-import DensityPlot from './DensityPlot';
-import LoadingOverlay from './LoadingOverlay';
+import DensityPlot from './DensityPlot'; // Component for displaying simulation results.
+import LoadingOverlay from './LoadingOverlay'; // Overlay component to indicate loading state.
 
-// Define the different style variants
+// Define possible style variants for gates.
 export const STYLE_VARIANTS = {
     DEFAULT: 'default',
     BLACK_WHITE: '_bw',
     INVERTED: '_invert'
 };
 
+// Function to create the initial set of quantum gate icons based on style.
 export const createInitialIcons = (styleVariant) => [
+    // Standard quantum gates with optional style suffix.
     { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'H_Gate', value: 8 },
     { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Gate', value: 4 },
     { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Gate', value: 5 },
     { id: 'pauli-z-gate', content: `/icons/Z_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Gate', value: 3 },
     { id: 'phase-s-gate', content: `/icons/S_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'S_Gate', value: 6 },
     { id: 'phase-t-gate', content: `/icons/T_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'T_Gate', value: 7 },
-    // CNOT gates don't use style variants
+    // CNOT gates don't vary by style.
     { id: 'cnot-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10, controlUp: true },
     { id: 'cnot-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9, controlUp: false },
+    // Error gates with optional style suffix.
     { id: 'pauli-x-gate-err', content: `/icons/X_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Err', value: 11 },
     { id: 'pauli-y-gate-err', content: `/icons/Y_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Err', value: 12 },
     { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Err', value: 13 },
 ];
 
+// Define constraints for the grid dimensions.
 export const INITIAL_COLUMNS = 10;
 export const MAX_ROWS = 8;
 export const MIN_COLUMNS = 1;
 export const MAX_COLUMNS = 20;
 
 export default function DragAndDropGrid() {
-    const [selectedStyle, setSelectedStyle] = useState('');
-    const [icons, setIcons] = useState([]);
-    const [numRows, setNumRows] = useState(2);
-    const [errorWarning, setErrorWarning] = useState("");
-    const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS);
-    const [dragAttempts, setDragAttempts] = useState(0);
+    // State for managing grid style, gate icons, dimensions, and warnings.
+    const [selectedStyle, setSelectedStyle] = useState(''); // Active style variant.
+    const [icons, setIcons] = useState([]); // Available gate icons.
+    const [numRows, setNumRows] = useState(2); // Number of wires (rows) in the grid.
+    const [errorWarning, setErrorWarning] = useState(""); // Warning messages.
+    const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS); // Number of columns (layers).
+    const [dragAttempts, setDragAttempts] = useState(0); // Drag operation count for analytics.
     const [grid, setGrid] = useState(
+        // Initialize the grid with empty cells.
         Array(numRows)
             .fill(null)
             .map(() =>
                 Array(numColumns).fill(null).map(() => ({
-                    gate: null,
-                    occupiedBy: null,
+                    gate: null,        // The gate placed in the cell.
+                    occupiedBy: null, // ID of the gate occupying the cell.
                 }))
             )
     );
-    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty'));
-    const [simulationResults, setSimulationResults] = useState(null);
-    const [isSimulating, setIsSimulating] = useState(false);
-    const [showWarning, setShowWarning] = useState(false);
+    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty')); // Layer types for visualization.
+    const [simulationResults, setSimulationResults] = useState(null); // Simulation results.
+    const [isSimulating, setIsSimulating] = useState(false); // Simulating state.
+    const [showWarning, setShowWarning] = useState(false); // Warning for invalid operations.
 
+    // Fetch style selection on initial render and set gate icons accordingly.
     useEffect(() => {
         const fetchStyle = async () => {
             try {
-                const response = await fetch('/api/style-select');
+                const response = await fetch('/api/style-select'); // API call for style.
                 const data = await response.json();
                 const style = data.selectedStyle === '' ? 'default' : data.selectedStyle;
                 setSelectedStyle(style);
@@ -78,18 +85,21 @@ export default function DragAndDropGrid() {
         fetchStyle();
     }, []);
 
+    // Display temporary warning messages for invalid actions.
     const showTemporaryWarning = (message) => {
         setErrorWarning(message);
-        setTimeout(() => setErrorWarning(""), 3000);
+        setTimeout(() => setErrorWarning(""), 3000); // Clear warning after 3 seconds.
     };
 
+    // Logic to determine the type of a layer based on the gates placed.
     const determineLayerType = (column) => {
-        let hasErrorGate = false;
-        let hasNormalGate = false;
-        let hasAnyGate = false;
+        let hasErrorGate = false; // Track presence of error gates.
+        let hasNormalGate = false; // Track presence of standard gates.
+        let hasAnyGate = false; // Track presence of any gates.
 
         for (let row = 0; row < numRows; row++) {
             const cell = grid[row][column];
+            // Check for gates or CNOT occupancy.
             if (cell.gate || (cell.occupiedBy && grid.some(r => r[column]?.gate?.id === cell.occupiedBy))) {
                 hasAnyGate = true;
                 if (cell.gate?.type?.endsWith('_Err')) {
@@ -100,6 +110,7 @@ export default function DragAndDropGrid() {
             }
         }
 
+        // Determine layer type based on gate presence.
         if (!hasAnyGate) return 'empty';
         if (hasErrorGate && hasNormalGate) return 'mixed';
         if (hasErrorGate) return 'error';
@@ -107,6 +118,7 @@ export default function DragAndDropGrid() {
         return 'empty';
     };
 
+    // Verify if a gate can be placed in a column based on its compatibility.
     const checkLayerCompatibility = (destCol, gateType) => {
         const currentLayerType = determineLayerType(destCol);
         const isErrorGate = gateType.endsWith('_Err');
@@ -118,7 +130,6 @@ export default function DragAndDropGrid() {
         showTemporaryWarning('Cannot mix error and non-error gates in the same layer.');
         return false;
     };
-
     const getCNOTImage = (control, target) => {
         return control < target ? '/icons/CNOT.svg' : '/icons/CNOT_down.svg';
     };
