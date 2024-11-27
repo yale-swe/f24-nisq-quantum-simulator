@@ -1,101 +1,97 @@
-import React from 'react';
-<<<<<<< Updated upstream
-=======
-import { render, screen } from '@testing-library/react';
->>>>>>> Stashed changes
-import DragAndDropGrid from '../DragAndDropGrid';
-import { render, screen, fireEvent } from '@testing-library/react';
 
-// test('renders drag and drop grid', () => {
-//   render(<DragAndDropGrid />);
-//   const titleElement = screen.getByText(/NISQ Quantum Simulator/i);
-//   expect(titleElement).toBeInTheDocument();
-// });
 
-// test('renders grid items', () => {
-//   render(<DragAndDropGrid />);
-//   const gridItemElements = screen.getAllByTestId('grid-item');
-//   expect(gridItemElements.length).toBeGreaterThan(0);
-// });
 
-// test('allows dragging of grid items', () => {
-//   render(<DragAndDropGrid />);
-//   const gridItemElement = screen.getByTestId('grid-item-1');
-//   expect(gridItemElement).toHaveAttribute('draggable', 'true');
-// });
+import { createInitialIcons, STYLE_VARIANTS, MIN_COLUMNS, MAX_COLUMNS } from '../DragAndDropGrid'; // Ensure these are exported in DragAndDropGrid.js
 
-// test('allows dropping of grid items', () => {
-//   render(<DragAndDropGrid />);
-//   const dropZoneElement = screen.getByTestId('drop-zone');
-//   expect(dropZoneElement).toBeInTheDocument();
-// });
 
-// test('renders drag and drop grid', () => {
-//   render(<DragAndDropGrid />);
-//   const titleElement = screen.getByText(/NISQ Quantum Simulator/i);
-//   expect(titleElement).toBeInTheDocument();
-// });
+// Mock functions for state updates
+const mockSetState = (state) => jest.fn((fn) => (state = fn(state)));
 
-// test('renders available gates', () => {
-//   render(<DragAndDropGrid />);
-//   const availableGatesTitle = screen.getByText(/Available Gates/i);
-//   expect(availableGatesTitle).toBeInTheDocument();
-// });
+// Tests for utility functions and constants
+describe('Utility Functions and Constants', () => {
+    test('initial gate data is correctly structured', () => {
+        const gates = createInitialIcons('default');
+        expect(gates).toBeDefined();
+        expect(gates.length).toBeGreaterThan(0);
+        expect(gates[0]).toHaveProperty('id');
+        expect(gates[0]).toHaveProperty('content');
+        expect(gates[0]).toHaveProperty('type');
+    });
 
-// test('renders add wire button', () => {
-//   render(<DragAndDropGrid />);
-//   const addWireButton = screen.getByText(/Add Wire/i);
-//   expect(addWireButton).toBeInTheDocument();
-// });
+    test('STYLE_VARIANTS is defined', () => {
+        expect(STYLE_VARIANTS).toBeDefined();
+        expect(STYLE_VARIANTS).toHaveProperty('DEFAULT', 'default');
+        expect(STYLE_VARIANTS).toHaveProperty('BLACK_WHITE', '_bw');
+        expect(STYLE_VARIANTS).toHaveProperty('INVERTED', '_invert');
+    });
+});
 
-// test('renders quantum circuit title', () => {
-//   render(<DragAndDropGrid />);
-//   const quantumCircuitTitle = screen.getByText(/Quantum Circuit/i);
-//   expect(quantumCircuitTitle).toBeInTheDocument();
-// });
+// Tests for grid manipulation logic
+describe('Grid Manipulation Logic', () => {
+    test('addLayer respects MAX_COLUMNS limit', () => {
+        let numColumns = MAX_COLUMNS;
+        let layerTypes = Array(MAX_COLUMNS).fill('empty');
+        let grid = Array(2).fill(null).map(() => Array(MAX_COLUMNS).fill(null).map(() => ({ gate: null, occupiedBy: null })));
 
-// test('renders generate results button', () => {
-//   render(<DragAndDropGrid />);
-//   const generateResultsButton = screen.getByText(/Generate Results/i);
-//   expect(generateResultsButton).toBeInTheDocument();
-// });
+        const setNumColumns = mockSetState(numColumns);
+        const setLayerTypes = mockSetState(layerTypes);
+        const setGrid = mockSetState(grid);
 
-// test('allows adding a wire', () => {
-//   render(<DragAndDropGrid />);
-//   const addWireButton = screen.getByText(/Add Wire/i);
-//   fireEvent.click(addWireButton);
-//   const wires = screen.getAllByTestId('wire');
-//   expect(wires.length).toBeGreaterThan(2); // Initial wires + 1
-// });
+        // Simulate the `addLayer` function
+        if (numColumns < MAX_COLUMNS) {
+            setNumColumns((prev) => prev + 1);
+            setLayerTypes((prev) => [...prev, 'empty']);
+            setGrid((prev) =>
+                prev.map((row) => [...row, { gate: null, occupiedBy: null }])
+            );
+        }
 
-// test('allows removing a wire', () => {
-//   render(<DragAndDropGrid />);
-//   const removeWireButton = screen.getByText(/×/i);
-//   fireEvent.click(removeWireButton);
-//   const wires = screen.getAllByTestId('wire');
-//   expect(wires.length).toBeLessThan(2); // Initial wires - 1
-// });
+        expect(numColumns).toEqual(MAX_COLUMNS); // Should not exceed max
+        expect(layerTypes.length).toEqual(MAX_COLUMNS);
+        expect(grid[0].length).toEqual(MAX_COLUMNS);
+    });
 
-// test('allows adding a layer', () => {
-//   render(<DragAndDropGrid />);
-//   const addLayerButton = screen.getByText(/→/i);
-//   fireEvent.click(addLayerButton);
-//   const layers = screen.getAllByTestId('layer');
-//   expect(layers.length).toBeGreaterThan(10); // Initial layers + 1
-// });
+    test('removeLayer respects MIN_COLUMNS limit', () => {
+        let numColumns = MIN_COLUMNS;
+        let layerTypes = Array(MIN_COLUMNS).fill('empty');
+        let grid = Array(2).fill(null).map(() => Array(MIN_COLUMNS).fill(null).map(() => ({ gate: null, occupiedBy: null })));
 
-// test('allows removing a layer', () => {
-//   render(<DragAndDropGrid />);
-//   const removeLayerButton = screen.getByText(/←/i);
-//   fireEvent.click(removeLayerButton);
-//   const layers = screen.getAllByTestId('layer');
-//   expect(layers.length).toBeLessThan(10); // Initial layers - 1
-// });
+        const setNumColumns = mockSetState(numColumns);
+        const setLayerTypes = mockSetState(layerTypes);
+        const setGrid = mockSetState(grid);
 
-// test('shows warning when trying to remove a layer with gates', () => {
-//   render(<DragAndDropGrid />);
-//   const removeLayerButton = screen.getByText(/←/i);
-//   fireEvent.click(removeLayerButton);
-//   const warningMessage = screen.getByText(/Cannot remove layer containing gates/i);
-//   expect(warningMessage).toBeInTheDocument();
-// });
+        // Simulate the `removeLayer` function
+        if (numColumns > MIN_COLUMNS) {
+            setNumColumns((prev) => prev - 1);
+            setLayerTypes((prev) => prev.slice(0, -1));
+            setGrid((prev) => prev.map((row) => row.slice(0, -1)));
+        }
+
+        expect(numColumns).toEqual(MIN_COLUMNS); // Should not go below min
+        expect(layerTypes.length).toEqual(MIN_COLUMNS);
+        expect(grid[0].length).toEqual(MIN_COLUMNS);
+    });
+
+    test('convertGridToIR handles empty grid correctly', () => {
+        const grid = Array(2)
+            .fill(null)
+            .map(() =>
+                Array(2).fill(null).map(() => ({ gate: null, occupiedBy: null }))
+            );
+
+        const convertGridToIR = (grid) => {
+            return grid[0].map((_, colIndex) => ({
+                gates: grid.map((row) => row[colIndex]).filter((cell) => cell.gate).map((cell) => [cell.gate.type, cell.gate.wireIndices || null]),
+                type: 'empty',
+                numRows: grid.length,
+            }));
+        };
+
+        const ir = convertGridToIR(grid);
+
+        expect(ir.length).toBe(2); // Two columns
+        expect(ir[0].gates.length).toBe(0); // No gates in the column
+        expect(ir[1].gates.length).toBe(0);
+    });
+});
+

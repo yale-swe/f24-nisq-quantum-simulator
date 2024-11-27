@@ -13,13 +13,13 @@ import DensityPlot from './DensityPlot';
 import LoadingOverlay from './LoadingOverlay';
 
 // Define the different style variants
-const STYLE_VARIANTS = {
+export const STYLE_VARIANTS = {
     DEFAULT: 'default',
     BLACK_WHITE: '_bw',
     INVERTED: '_invert'
 };
 
-const createInitialIcons = (styleVariant) => [
+export const createInitialIcons = (styleVariant) => [
     { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'H_Gate', value: 8 },
     { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Gate', value: 4 },
     { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Gate', value: 5 },
@@ -34,10 +34,10 @@ const createInitialIcons = (styleVariant) => [
     { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Err', value: 13 },
 ];
 
-const INITIAL_COLUMNS = 10;
-const MAX_ROWS = 8;
-const MIN_COLUMNS = 1;
-const MAX_COLUMNS = 20;
+export const INITIAL_COLUMNS = 10;
+export const MAX_ROWS = 8;
+export const MIN_COLUMNS = 1;
+export const MAX_COLUMNS = 20;
 
 export default function DragAndDropGrid() {
     const [selectedStyle, setSelectedStyle] = useState('');

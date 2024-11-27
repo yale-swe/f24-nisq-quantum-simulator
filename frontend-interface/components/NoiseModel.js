@@ -1,71 +1,46 @@
-import React, { useRef } from 'react';
-import * as math from 'mathjs';
+import React, { useState } from 'react';
 
-// Exported utility functions remain the same
 
 export default function NoiseModel() {
-    const fileContentRef = useRef('');
-    const modelMatrixRef = useRef(null);
-    const statusRef = useRef('');
+    const [fileContent, setFileContent] = useState('');
+    const [modelMatrix, setModelMatrix] = useState(null);
+    const [status, setStatus] = useState('');
 
-    const setStatus = (message) => {
-        statusRef.current = message;
-        document.getElementById('status').textContent = message; // Update DOM directly
+    const updateStatus = (message, isError = false) => {
+        setStatus({ message, isError });
     };
 
-    const setFileContent = (content) => {
-        fileContentRef.current = content;
-        document.getElementById('fileContent').textContent = content; // Update DOM directly
-    };
-
-    const validateFileType = (file) => {
-        return file.type === 'text/plain';
-    };
-
-    const readBlob = () => {
+    const readBlob = async () => {
         const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
+        const file = fileInput?.files?.[0];
 
         if (!file) {
-            setStatus('No file selected!');
-            return;
+            return updateStatus('No file selected!', true);
         }
 
         if (!validateFileType(file)) {
-            setStatus('Invalid File Format (.txt required)');
-            return;
+            return updateStatus('Invalid File Format (.txt required)', true);
         }
 
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const fileData = e.target.result;
+        try {
+            const fileData = await file.text();
             setFileContent(fileData);
 
             const result = processNoiseModel(fileData);
-            if (result) {
-                setStatus('Noise Model Read Successfully');
-                modelMatrixRef.current = result;
 
-                // Save the model
-                try {
-                    await saveModel(result);
-                } catch (error) {
-                    console.error('Error posting matrix data:', error);
-                    setStatus('Error posting matrix data');
-                }
+            if (result) {
+                setModelMatrix(result);
+                updateStatus('Noise model is valid.', false);
+                await saveModel(result);
             } else {
-                setStatus('Error processing noise model');
+                updateStatus('Error processing noise model.', true);
             }
-        };
-        reader.onerror = () => {
-            setStatus('Error reading file!');
-        };
-        reader.readAsText(file);
+        } catch (error) {
+            updateStatus('Error reading file!', true);
+        }
     };
 
     const saveModel = async (matrix) => {
-        console.log("Posting Matrix Data:", matrix);
-
         try {
             const response = await fetch('http://localhost:3000/api/saveOutputs', {
                 method: 'POST',
@@ -76,74 +51,148 @@ export default function NoiseModel() {
             });
 
             const data = await response.json();
+
             if (response.ok) {
-                console.log(data.message);
-                setStatus(data.message);
+                updateStatus(data.message, false);
             } else {
-                console.error(data.message);
-                setStatus('Failed to save outputs');
+                updateStatus('Failed to save outputs.', true);
             }
-        } catch (error) {
-            console.error('Error posting matrix data:', error);
-            setStatus('Error posting matrix data');
+        } catch {
+            updateStatus('Error posting matrix data.', true);
         }
     };
 
     return (
-        <div data-testid="noise-model" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            textAlign: 'center'
-        }}>
-            <div style={{
-                backgroundColor: 'white',
-                padding: '10px 15px',
-                borderRadius: '5px',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-                border: '1px solid #ddd',
-                display: 'inline-block',
-                textAlign: 'center',
-                marginBottom: '10px'
-            }}>
-                <label htmlFor="fileInput" style={{
-                    display: 'inline-block',
-                    padding: '8px 12px',
-                    fontSize: '14px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
-                    marginBottom: '10px'
-                }}>
-                    Choose File
-                </label>
-                <input
-                    type="file"
-                    id="fileInput"
-                    style={{
-                        display: 'none'
-                    }}
-                />
-                <button
-                    onClick={readBlob}
-                    style={{
-                        padding: '5px 10px',
-                        fontSize: '14px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Load Noise Model
-                </button>
-            </div>
-            <p id="status"></p>
-            <pre id="fileContent"></pre>
+        <div data-testid="noise-model">
+            <label htmlFor="fileInput">Choose File</label>
+            <input type="file" id="fileInput" />
+            <button onClick={readBlob}>Load Noise Model</button>
+            {status && <p>{status.message}</p>}
+            {fileContent && <pre>{fileContent}</pre>}
         </div>
     );
 }
+
+import * as math from 'mathjs';
+
+// Function to validate the file type
+export const validateFileType = (file) => {
+    return file?.type === 'text/plain';
+};
+
+// Function to validate the syntax of the noise model file data
+export const validateNoiseModelSyntax = (fileData) => {
+    if (typeof fileData !== 'string') {
+        return { isValid: false, matrices: null };
+    }
+
+    try {
+        const matrices = JSON.parse(fileData);
+
+        if (!Array.isArray(matrices)) {
+            return { isValid: false, matrices: null };
+        }
+
+        for (let matrix of matrices) {
+            if (!Array.isArray(matrix) || matrix.length === 0) {
+                return { isValid: false, matrices: null };
+            }
+
+            const rowLength = matrix[0].length;
+
+            for (let row of matrix) {
+                if (!Array.isArray(row) || row.length !== rowLength) {
+                    return { isValid: false, matrices: null };
+                }
+
+                for (let element of row) {
+                    if (typeof element !== 'number') {
+                        return { isValid: false, matrices: null };
+                    }
+                }
+            }
+
+            if (matrix.length !== rowLength) {
+                return { isValid: false, matrices: null };
+            }
+        }
+
+        return { isValid: true, matrices };
+    } catch {
+        return { isValid: false, matrices: null };
+    }
+};
+
+// Function to load matrices using math.js
+export const loadMatrix = (noiseModelString) => {
+    try {
+        const parsedMatrices = JSON.parse(noiseModelString);
+        return parsedMatrices.map((matrix) => math.matrix(matrix));
+    } catch {
+        console.error("Failed to load matrices.");
+        return [];
+    }
+};
+
+// Function to validate the linear algebra of the noise model
+export const validateNoiseModelLinAlg = (matrices) => {
+    if (matrices.length === 0) {
+        console.error("No matrices provided for validation.");
+        return false;
+    }
+
+    const dimension = matrices[0].size()[0];
+
+    for (let matrix of matrices) {
+        if (
+            matrix.size().length !== 2 ||
+            matrix.size()[0] !== matrix.size()[1] ||
+            matrix.size()[0] !== dimension
+        ) {
+            console.error("Matrices are not square or dimensions do not match.");
+            return false;
+        }
+    }
+
+    const identity = math.identity(dimension);
+    let sum = math.zeros(dimension, dimension);
+
+    matrices.forEach((matrix) => {
+        const conjugateTranspose = math.conj(math.transpose(matrix));
+        const product = math.multiply(matrix, conjugateTranspose);
+        sum = math.add(sum, product);
+    });
+
+    if (!math.deepEqual(sum, identity)) {
+        console.error("The sum of E_i * E_i^† does not equal the identity matrix.");
+        return false;
+    }
+
+    return true;
+};
+
+// Function to process the noise model
+export const processNoiseModel = (fileData) => {
+    const syntaxCheck = validateNoiseModelSyntax(fileData);
+
+    if (!syntaxCheck.isValid) {
+        console.error("Error in Noise Model Syntax");
+        return null;
+    }
+
+    const loadedMatrices = loadMatrix(fileData);
+
+    if (loadedMatrices.length === 0) {
+        console.error("Failed to load matrices.");
+        return null;
+    }
+
+    const isValidLinAlg = validateNoiseModelLinAlg(loadedMatrices);
+
+    if (!isValidLinAlg) {
+        console.error("Linear Algebra Error in Noise Model.");
+        return null;
+    }
+
+    return loadedMatrices;
+};
