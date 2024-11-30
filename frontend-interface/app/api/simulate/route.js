@@ -3,21 +3,16 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-
 export async function POST(request) {
     console.log('API route /api/simulate called');
     let tempFilePath = null;
 
     try {
-        // Verify multipart/form-data request
-        const contentType = request.headers.get('content-type');
-        if (!contentType || !contentType.includes('multipart/form-data')) {
-            throw new Error('Request must be multipart/form-data');
-        }
-
         const formData = await request.formData();
         const circuitIRData = formData.get('circuit_ir');
         const noiseModelFile = formData.get('noise_model');
+
+        console.log('Received noise model file:', noiseModelFile);
 
         if (!circuitIRData) {
             console.log('No circuit IR provided');
@@ -31,10 +26,14 @@ export async function POST(request) {
 
         // Create temporary file for noise model if provided
         if (noiseModelFile) {
+            // Convert comma-separated string to Uint8Array
+            const values = noiseModelFile.split(',').map(Number);
+            const buffer = Buffer.from(new Uint8Array(values).buffer);
             tempFilePath = path.join(process.cwd(), '..', 'backend', `temp_${uuidv4()}.npy`);
-            const arrayBuffer = await noiseModelFile.arrayBuffer();
-            fs.writeFileSync(tempFilePath, Buffer.from(arrayBuffer));
+            fs.writeFileSync(tempFilePath, buffer);
+            console.log('Successfully wrote noise model to:', tempFilePath);
         }
+
 
         // Path to Python script
         const scriptPath = path.join(process.cwd(), '..', 'backend', 'quantum_simulator.py');
@@ -47,9 +46,11 @@ export async function POST(request) {
             ];
 
             if (tempFilePath) {
-                pythonArgs.push('--noise-model');
-                pythonArgs.push(tempFilePath);
+                console.log('Adding noise model path to args:', tempFilePath);
+                pythonArgs.push('--noise-model', tempFilePath);
             }
+
+            console.log('Executing Python with args:', pythonArgs);
 
             const pythonProcess = spawn('python3', pythonArgs);
 
@@ -62,8 +63,8 @@ export async function POST(request) {
 
             pythonProcess.stderr.on('data', (data) => {
                 errorOutput += data.toString();
+                console.log('Python stderr:', data.toString());
             });
-
             pythonProcess.on('close', (code) => {
                 // Clean up temporary file
                 if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -99,7 +100,6 @@ export async function POST(request) {
         }, { status: 200 });
 
     } catch (error) {
-        // Clean up temporary file in case of errors
         if (tempFilePath && fs.existsSync(tempFilePath)) {
             fs.unlinkSync(tempFilePath);
         }

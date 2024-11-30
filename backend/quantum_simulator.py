@@ -353,7 +353,6 @@ if __name__ == "__main__":
 
     # Run simulation with custom noise model if provided, otherwise uses default
     result = simulate_quantum_circuit(circuit_ir, c_ops)
-    # print(c_ops)
 
     # Print result as JSON for API to capture
     print(json.dumps(result))
