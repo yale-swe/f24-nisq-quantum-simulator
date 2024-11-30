@@ -748,14 +748,7 @@ export default function DragAndDropGrid() {
                             <p>{status.message}</p>
                         </div>
                     )}
-
-                    {/* Display File Content */}
-                    {fileContent && (
-                        <div style={{ marginTop: '10px', backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px' }}>
-                            <h3>Uploaded Noise Model:</h3>
-                            <pre>{fileContent}</pre>
-                        </div>
-                    )}
+                    
                 </div>
 
                 {/* Wire Controls */}
