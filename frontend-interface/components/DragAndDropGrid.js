@@ -468,10 +468,10 @@ export default function DragAndDropGrid() {
         setIsSimulating(true);
         try {
             const ir = convertGridToIR();
-            console.log(ir, fileContent ? JSON.parse(fileContent) : null)
+            console.log(ir, fileContent)
             const requestBody = {
                 circuit_ir: ir,
-                noise_model: fileContent ? JSON.parse(fileContent) : null
+                noise_model: fileContent ? Array.from(fileContent) : null // Convert Uint8Array to regular array
             };
 
             const response = await fetch('/api/simulate', {
@@ -479,6 +479,7 @@ export default function DragAndDropGrid() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody),
             });
+
             const result = await response.json();
             if (result.data && result.data.plotImage) {
                 setSimulationResults(result.data);
@@ -621,6 +622,7 @@ export default function DragAndDropGrid() {
         }
     };
 
+    // In the readBlob function:
     const readBlob = () => {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
@@ -631,17 +633,12 @@ export default function DragAndDropGrid() {
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            const content = e.target.result;
-            setFileContent(content);
-            try {
-                const matrix = JSON.parse(content);
-                saveModel(matrix);
-            } catch (error) {
-                updateStatus('Invalid file format.', true);
-            }
+            setFileContent(new Uint8Array(e.target.result));
+            updateStatus('Noise model loaded successfully', false);
         };
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
     };
+
 
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
@@ -796,7 +793,7 @@ export default function DragAndDropGrid() {
                             if (file && file.name.endsWith('.npy')) {
                                 readBlob();
                             } else {
-                                showTemporaryWarning('Please select a .npy file (output of np.loads()).', true);
+                                showTemporaryWarning('Please select a .npy file.', true);
                             }
                         }}
                         accept=".npy"
