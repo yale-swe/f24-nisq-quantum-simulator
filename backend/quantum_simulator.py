@@ -294,7 +294,7 @@ def validate_circuit_layers(circuit_rep):
             used_qubits.update(gate_qubits)
 
 
-def simulate_quantum_circuit(circuit_ir):
+def simulate_quantum_circuit(circuit_ir, c_ops = None):
     """
     Main simulation function that takes a circuit IR and returns the simulation results.
     """
@@ -310,7 +310,8 @@ def simulate_quantum_circuit(circuit_ir):
     initial_state.dims = [[2] * num_qubits, [2] * num_qubits]
 
     # Generate collapse operators for the correct number of qubits
-    c_ops = get_depolarizing_ops(1e-2, num_qubits)
+    if c_ops == None:
+        c_ops = get_depolarizing_ops(1e-2, num_qubits)
 
     final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
     final_state_array = final_state.full()
