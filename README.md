@@ -2,8 +2,6 @@
 
 A sophisticated web-based quantum circuit simulator designed for experimenting with noisy intermediate-scale quantum (NISQ) environments. This project combines a Next.js frontend with a Python backend to provide an interactive platform for quantum circuit design, simulation, and visualization.
 
-Website: https://f24-nisq-quantum-simulator.onrender.com/
-
 ## Features
 - **Circuit Design & Simulation**:
   - Interactive Circuit Designer: Drag-and-drop interface for building quantum circuits.
@@ -16,11 +14,7 @@ Website: https://f24-nisq-quantum-simulator.onrender.com/
     - 3D bar plots with:
       - Magnitude representation through bar height.
       - Phase representation using a rainbow colormap.
-    - Interactive viewing angles.
-  - Bloch Sphere Representation:
-    - Real-time state vector visualization.
-    - Interactive 3D sphere with quantum state mapping.
-    - Axis labels and state vector annotations.
+      - Interactive viewing angles.
 - **Error Analysis**:
   - Noise Model Integration:
     - Custom noise model support.
@@ -69,7 +63,7 @@ npm install
 
 ## Production Deployment
 
-The application is deployed on Render.com. Access the live version at [deployment-url].
+The application is deployed on Render.com. Access the live version at [https://f24-nisq-quantum-simulator.onrender.com/].
 
 # Project Structure
 
