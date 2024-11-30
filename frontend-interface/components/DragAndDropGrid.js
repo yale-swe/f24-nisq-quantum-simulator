@@ -592,7 +592,7 @@ export default function DragAndDropGrid() {
     const updateStatus = (message, isError) => {
         setStatus({ message, isError });
     };
-    
+
     const saveModel = async (matrix) => {
         try {
             const response = await fetch('http://localhost:3000/api/saveOutputs', {
@@ -602,9 +602,9 @@ export default function DragAndDropGrid() {
                 },
                 body: JSON.stringify({ outputs: matrix }),
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok) {
                 updateStatus(data.message, false);
             } else {
@@ -614,7 +614,7 @@ export default function DragAndDropGrid() {
             updateStatus(`Error posting matrix data: ${error.message}`, true);
         }
     };
-    
+
     const readBlob = () => {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
@@ -622,7 +622,7 @@ export default function DragAndDropGrid() {
             updateStatus('No file selected.', true);
             return;
         }
-    
+
         const reader = new FileReader();
         reader.onload = (e) => {
             const content = e.target.result;
@@ -681,8 +681,8 @@ export default function DragAndDropGrid() {
             </div>
             <DragDropContext onDragEnd={onDragEnd}>
                 {/* Icons section */}
-                <div style={{ 
-                    padding: '20px', 
+                <div style={{
+                    padding: '20px',
                     border: '2px solid #4CAF50',
                     borderRadius: '8px',
                     marginBottom: '10px'
@@ -695,10 +695,10 @@ export default function DragAndDropGrid() {
                                 {...provided.droppableProps}
                                 style={{
                                     display: 'flex',
-                                    gap: '10px', 
-                                    marginBottom: '5px', 
+                                    gap: '10px',
+                                    marginBottom: '5px',
                                     border: '1px solid #ddd',
-                                    padding: '10px', 
+                                    padding: '10px',
                                     borderRadius: '4px'
                                 }}
                             >
@@ -729,24 +729,9 @@ export default function DragAndDropGrid() {
                                         )}
                                     </Draggable>
                                 ))}
-
-                                {/* Load Noise Model Button */}
-                                <div style={{ display: 'flex', alignItems: 'center'}}></div>
-                                    <input type="file" id="fileInput" style={{ fontSize: '</div>16px', paddingTop: '15px', paddingLeft: '30px'}} />
-                                    <button onClick={readBlob} style={{
-                                        padding: '10px 10px',
-                                        backgroundColor: '#007bff',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        marginLeft: '5px'
-                                    }}>
-                                        Load Noise Model
-                                    </button>
-                                    {provided.placeholder}
-                                </div>
-                            )}
+                                {provided.placeholder}
+                            </div>
+                        )}
                     </Droppable>
 
                     {/* Status Messages */}
@@ -766,12 +751,12 @@ export default function DragAndDropGrid() {
                 </div>
 
                 {/* Wire Controls */}
-                <div style={{ padding: '20px', marginBottom: '10px' }}> 
+                <div style={{ padding: '20px', marginBottom: '10px' }}>
                     <button
                         onClick={addWire}
                         disabled={numRows >= MAX_ROWS}
                         style={{
-                            padding: '10px 10px', 
+                            padding: '10px 10px',
                             backgroundColor: numRows >= MAX_ROWS ? '#cccccc' : '#4CAF50',
                             color: 'white',
                             border: 'none',
@@ -785,26 +770,74 @@ export default function DragAndDropGrid() {
                     <button
                         onClick={resetCircuit}
                         style={{
-                            padding: '10px 10px', 
+                            padding: '10px 10px',
                             backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            marginRight: '15px'
+                        }}
+                    >
+                        Reset Circuit
+                    </button>
+
+                    <input
+                        type="file"
+                        id="fileInput"
+                        onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file && file.name.endsWith('.txt')) {
+                                readBlob();
+                            } else {
+                                updateStatus('Please select a .txt file.', true);
+                            }
+                        }}
+                        accept=".txt"
+                        style={{ display: 'none' }}
+                    />
+                    <button
+                        onClick={() => document.getElementById('fileInput').click()}
+                        style={{
+                            padding: '10px 10px',
+                            backgroundColor: '#9370DB', // Light purple
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            marginRight: '15px'
+                        }}
+                    >
+                        Load Noise Model
+                    </button>
+                    <button
+                        onClick={() => {
+                            setFileContent(null);
+                            showTemporaryWarning('Noise model reset', false);
+                        }}
+                        style={{
+                            padding: '10px 10px',
+                            backgroundColor: '#663399', // Darker purple (Rebecca Purple)
                             color: 'white',
                             border: 'none',
                             borderRadius: '4px',
                             cursor: 'pointer'
                         }}
                     >
-                        Reset Circuit
+                        Reset Noise Model
                     </button>
+
                 </div>
 
-                {/* Circuit section */}                
-                <div style={{ padding: '20px',
-                                border: '2px solid #4CAF50',
-                                borderRadius: '8px'
-                 }}>
+                {/* Circuit section */}
+                <div style={{
+                    padding: '20px',
+                    border: '2px solid #4CAF50',
+                    borderRadius: '8px'
+                }}>
                     <h2 style={{
                         color: 'black',
-                        marginBottom: '60px' 
+                        marginBottom: '60px'
                     }}>
                         Quantum Circuit
                     </h2>
@@ -1106,7 +1139,7 @@ export default function DragAndDropGrid() {
                 {/* Results Display */}
                 <DensityPlot plotImageData={simulationResults?.plotImage} />
                 <LoadingOverlay isLoading={isSimulating} />
-            </DragDropContext>
-        </div>
+            </DragDropContext >
+        </div >
     );
 }
