@@ -491,18 +491,17 @@ export default function DragAndDropGrid() {
             });
 
             const result = await response.json();
-
-            if (!result.success) {
-                // Show error alert
-                showError(`Simulation Error: ${result.error}`);
-                return;
-            }
-
-            if (result.data && result.data.plotImage) {
-                setSimulationResults(result.data);
+            if (result.success) {
+                if (result.plot_image) {
+                    setSimulationResults({ plotImage: result.plot_image });
+                }
+            } else {
+                // Show error message from backend
+                showError(result.error || 'Error: Noise Model Dimensions Incompatible with Circuit.');
             }
         } catch (error) {
-            alert('Error in simulation: ' + error.message);
+            console.error('Error:', error);
+            showError(error.message || 'Error: Generating Circuit');
         } finally {
             setIsSimulating(false);
         }
