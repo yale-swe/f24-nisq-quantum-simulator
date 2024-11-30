@@ -631,7 +631,12 @@ export default function DragAndDropGrid() {
             </div>
             <DragDropContext onDragEnd={onDragEnd}>
                 {/* Icons section */}
-                <div style={{ padding: '20px' }}>
+                <div style={{ 
+                    padding: '20px', 
+                    border: '2px solid #4CAF50',
+                    borderRadius: '8px',
+                    marginBottom: '10px'
+                }}>
                     <h2 style={{ color: 'black' }}>Available Gates</h2>
                     <Droppable droppableId="icons" direction="horizontal">
                         {(provided) => (
@@ -640,8 +645,11 @@ export default function DragAndDropGrid() {
                                 {...provided.droppableProps}
                                 style={{
                                     display: 'flex',
-                                    gap: '10px',
-                                    marginBottom: '20px'
+                                    gap: '10px', 
+                                    marginBottom: '5px', 
+                                    border: '1px solid #ddd',
+                                    padding: '10px', 
+                                    borderRadius: '4px'
                                 }}
                             >
                                 {icons.map((icon, index) => (
@@ -678,18 +686,18 @@ export default function DragAndDropGrid() {
                 </div>
 
                 {/* Wire Controls */}
-                <div style={{ padding: '20px' }}>
+                <div style={{ padding: '20px', marginBottom: '10px' }}> 
                     <button
                         onClick={addWire}
                         disabled={numRows >= MAX_ROWS}
                         style={{
-                            padding: '8px 16px',
+                            padding: '10px 10px', 
                             backgroundColor: numRows >= MAX_ROWS ? '#cccccc' : '#4CAF50',
                             color: 'white',
                             border: 'none',
                             borderRadius: '4px',
                             cursor: numRows >= MAX_ROWS ? 'not-allowed' : 'pointer',
-                            marginRight: '10px'
+                            marginRight: '15px'
                         }}
                     >
                         Add Wire
@@ -697,7 +705,7 @@ export default function DragAndDropGrid() {
                     <button
                         onClick={resetCircuit}
                         style={{
-                            padding: '8px 16px',
+                            padding: '10px 10px', 
                             backgroundColor: '#dc3545',
                             color: 'white',
                             border: 'none',
@@ -709,11 +717,14 @@ export default function DragAndDropGrid() {
                     </button>
                 </div>
 
-                {/* Circuit section */}
-                <div style={{ padding: '20px' }}>
+                {/* Circuit section */}                
+                <div style={{ padding: '20px',
+                                border: '2px solid #4CAF50',
+                                borderRadius: '8px'
+                 }}>
                     <h2 style={{
                         color: 'black',
-                        marginBottom: '40px' // Keeping the increased spacing after title
+                        marginBottom: '60px' 
                     }}>
                         Quantum Circuit
                     </h2>

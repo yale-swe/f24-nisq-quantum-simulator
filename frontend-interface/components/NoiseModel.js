@@ -72,11 +72,11 @@ export default function NoiseModel() {
     };
 
     return (
-        <div data-testid="noise-model">
+        <div data-testid="noise-model" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
             {/* File input for selecting a noise model file */}
-            <label htmlFor="fileInput">Choose File</label>
-            <input type="file" id="fileInput" />
-            <button onClick={readBlob}>Load Noise Model</button>
+            <label htmlFor="fileInput" style={{ marginRight: '80px', fontSize: '20px' }}>Upload Existing Noise Model</label>
+            <input type="file" id="fileInput" style={{ fontSize: '16px' }} />
+            <button onClick={readBlob} style={{ fontSize: '16px' }}>Load Noise Model</button>
 
             {/* Display status messages */}
             {status && <p>{status.message}</p>}
@@ -118,7 +118,7 @@ export const validateNoiseModelSyntax = (fileData) => {
             for (let row of matrix) {
                 // Check if all rows have the same length
                 if (!Array.isArray(row) || row.length !== rowLength) {
-                    return { isValid: false, matrices: null };
+                        return { isValid: false, matrices: null };
                 }
 
                 // Check if all elements in the row are numbers
