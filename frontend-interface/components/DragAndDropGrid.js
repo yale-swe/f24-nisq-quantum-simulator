@@ -88,18 +88,17 @@ export default function DragAndDropGrid() {
     }, []);
 
     const showError = (message) => {
-        setErrorWarning({ message, type: "error" });
+        setErrorWarning({ message, type: 'error' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
-
     const showTemporaryWarning = (message) => {
-        setErrorWarning({ message, isWarning: true });
+        setErrorWarning({ message, type: 'warning' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
     const showTemporaryMsg = (message) => {
-        setErrorWarning({ message, isWarning: false });
+        setErrorWarning({ message, type: 'success' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
@@ -644,14 +643,17 @@ export default function DragAndDropGrid() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
         if (!file) {
-            updateStatus('No file selected.', true);
+            showError('No file selected.');
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
             setFileContent(new Uint8Array(e.target.result));
-            showTemporaryMsg('Noise model loaded successfully', false);
+            showTemporaryMsg('Noise Model Uploaded');  // Show success message after file is loaded
+        };
+        reader.onerror = () => {
+            showError('Error reading file.');
         };
         reader.readAsArrayBuffer(file);
     };
@@ -810,7 +812,10 @@ export default function DragAndDropGrid() {
                         style={{ display: 'none' }}
                     />
                     <button
-                        onClick={() => document.getElementById('fileInput').click()}
+                        onClick={() => {
+                            document.getElementById('fileInput').click();
+                        }
+                        }
                         style={{
                             padding: '10px 10px',
                             backgroundColor: '#9370DB', // Light purple
@@ -826,7 +831,7 @@ export default function DragAndDropGrid() {
                     <button
                         onClick={() => {
                             setFileContent(null);
-                            showTemporaryMsg('Noise model reset', false);
+                            showTemporaryMsg('Noise Model Reset', false);
                         }}
                         style={{
                             padding: '10px 10px',
