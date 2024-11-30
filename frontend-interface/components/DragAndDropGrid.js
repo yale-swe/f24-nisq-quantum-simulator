@@ -468,10 +468,16 @@ export default function DragAndDropGrid() {
         setIsSimulating(true);
         try {
             const ir = convertGridToIR();
+            console.log(ir, fileContent ? JSON.parse(fileContent) : null)
+            const requestBody = {
+                circuit_ir: ir,
+                noise_model: fileContent ? JSON.parse(fileContent) : null
+            };
+
             const response = await fetch('/api/simulate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ circuit_ir: ir }),
+                body: JSON.stringify(requestBody),
             });
             const result = await response.json();
             if (result.data && result.data.plotImage) {
@@ -787,13 +793,13 @@ export default function DragAndDropGrid() {
                         id="fileInput"
                         onChange={(e) => {
                             const file = e.target.files[0];
-                            if (file && file.name.endsWith('.txt')) {
+                            if (file && file.name.endsWith('.npy')) {
                                 readBlob();
                             } else {
-                                updateStatus('Please select a .txt file.', true);
+                                showTemporaryWarning('Please select a .npy file (output of np.loads()).', true);
                             }
                         }}
-                        accept=".txt"
+                        accept=".npy"
                         style={{ display: 'none' }}
                     />
                     <button
