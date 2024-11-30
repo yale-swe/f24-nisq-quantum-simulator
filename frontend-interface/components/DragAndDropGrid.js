@@ -66,6 +66,8 @@ export default function DragAndDropGrid() {
     const [simulationResults, setSimulationResults] = useState(null); // Simulation results.
     const [isSimulating, setIsSimulating] = useState(false); // Simulating state.
     const [showWarning, setShowWarning] = useState(false); // Warning for invalid operations.
+    const [status, setStatus] = useState(null);
+    const [fileContent, setFileContent] = useState(null);
 
     // Fetch style selection on initial render and set gate icons accordingly.
     useEffect(() => {
@@ -587,6 +589,54 @@ export default function DragAndDropGrid() {
         }
     };
 
+    const updateStatus = (message, isError) => {
+        setStatus({ message, isError });
+    };
+    
+    const saveModel = async (matrix) => {
+        try {
+            const response = await fetch('http://localhost:3000/api/saveOutputs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ outputs: matrix }),
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                updateStatus(data.message, false);
+            } else {
+                updateStatus('Failed to save outputs.', true);
+            }
+        } catch (error) {
+            updateStatus(`Error posting matrix data: ${error.message}`, true);
+        }
+    };
+    
+    const readBlob = () => {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            updateStatus('No file selected.', true);
+            return;
+        }
+    
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target.result;
+            setFileContent(content);
+            try {
+                const matrix = JSON.parse(content);
+                saveModel(matrix);
+            } catch (error) {
+                updateStatus('Invalid file format.', true);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', color: 'black' }}>
             <div style={{
@@ -679,10 +729,40 @@ export default function DragAndDropGrid() {
                                         )}
                                     </Draggable>
                                 ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
+
+                                {/* Load Noise Model Button */}
+                                <div style={{ display: 'flex', alignItems: 'center'}}></div>
+                                    <input type="file" id="fileInput" style={{ fontSize: '</div>16px', paddingTop: '15px', paddingLeft: '30px'}} />
+                                    <button onClick={readBlob} style={{
+                                        padding: '10px 10px',
+                                        backgroundColor: '#007bff',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        marginLeft: '5px'
+                                    }}>
+                                        Load Noise Model
+                                    </button>
+                                    {provided.placeholder}
+                                </div>
+                            )}
                     </Droppable>
+
+                    {/* Status Messages */}
+                    {status && (
+                        <div style={{ marginTop: '10px', color: status.isError ? 'red' : 'green' }}>
+                            <p>{status.message}</p>
+                        </div>
+                    )}
+
+                    {/* Display File Content */}
+                    {fileContent && (
+                        <div style={{ marginTop: '10px', backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px' }}>
+                            <h3>Uploaded Noise Model:</h3>
+                            <pre>{fileContent}</pre>
+                        </div>
+                    )}
                 </div>
 
                 {/* Wire Controls */}
