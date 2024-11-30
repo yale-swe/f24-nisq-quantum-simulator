@@ -87,6 +87,12 @@ export default function DragAndDropGrid() {
         fetchStyle();
     }, []);
 
+    const showError = (message) => {
+        setErrorWarning({ message, type: "error" });
+        setTimeout(() => setErrorWarning(null), 3000);
+    };
+
+
     const showTemporaryWarning = (message) => {
         setErrorWarning({ message, isWarning: true });
         setTimeout(() => setErrorWarning(null), 3000);
@@ -469,39 +475,39 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
-    setIsSimulating(true);
-    try {
-        const ir = convertGridToIR();
-        const formData = new FormData();
+        setIsSimulating(true);
+        try {
+            const ir = convertGridToIR();
+            const formData = new FormData();
 
-        formData.append('circuit_ir', JSON.stringify(ir));
+            formData.append('circuit_ir', JSON.stringify(ir));
 
-        if (fileContent) {
-            formData.append('noise_model', fileContent);
+            if (fileContent) {
+                formData.append('noise_model', fileContent);
+            }
+
+            const response = await fetch('/api/simulate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                // Show error alert
+                showError(`Simulation Error: ${result.error}`);
+                return;
+            }
+
+            if (result.data && result.data.plotImage) {
+                setSimulationResults(result.data);
+            }
+        } catch (error) {
+            alert('Error in simulation: ' + error.message);
+        } finally {
+            setIsSimulating(false);
         }
-
-        const response = await fetch('/api/simulate', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        
-        if (!result.success) {
-            // Show error alert
-            alert(`Simulation Error: ${result.error}`);
-            return;
-        }
-
-        if (result.data && result.data.plotImage) {
-            setSimulationResults(result.data);
-        }
-    } catch (error) {
-        alert('Error in simulation: ' + error.message);
-    } finally {
-        setIsSimulating(false);
-    }
-};
+    };
 
     const resetCircuit = () => {
         setGrid(Array(numRows)
@@ -943,15 +949,17 @@ export default function DragAndDropGrid() {
                                 position: 'absolute',
                                 right: '-250px',
                                 top: '50px',
-                                backgroundColor: showWarning ? '#ffeb3b' : errorWarning.isWarning ? '#ffeb3b' : '#4CAF50',
-                                color: showWarning || errorWarning.isWarning ? 'black' : 'white',
+                                backgroundColor: showWarning ? '#ffeb3b' :
+                                    errorWarning?.type === 'error' ? '#ff4444' :
+                                        errorWarning?.type === 'warning' ? '#ffeb3b' : '#4CAF50',
+                                color: errorWarning?.type === 'warning' ? 'black' : 'white',
                                 padding: '10px',
                                 borderRadius: '4px',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                 zIndex: 3,
                                 maxWidth: '200px'
                             }}>
-                                {showWarning ? 'Cannot remove layer containing gates' : errorWarning.message}
+                                {showWarning ? 'Cannot remove layer containing gates' : errorWarning?.message}
                             </div>
                         )}
 
