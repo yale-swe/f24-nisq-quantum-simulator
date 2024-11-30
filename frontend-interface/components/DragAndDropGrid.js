@@ -469,37 +469,39 @@ export default function DragAndDropGrid() {
     };
 
     const handleSimulate = async () => {
-        setIsSimulating(true);
-        try {
-            const ir = convertGridToIR();
-            const formData = new FormData();
+    setIsSimulating(true);
+    try {
+        const ir = convertGridToIR();
+        const formData = new FormData();
 
-            // Add the circuit IR as a string
-            formData.append('circuit_ir', JSON.stringify(ir));
+        formData.append('circuit_ir', JSON.stringify(ir));
 
-            // Add the noise model file if it exists
-            if (fileContent) {
-                // Ensure fileContent is a File object
-                formData.append('noise_model', fileContent);
-            }
-
-            const response = await fetch('/api/simulate', {
-                method: 'POST',
-                // Don't set Content-Type - browser will set it automatically with boundary
-                body: formData
-            });
-
-            const result = await response.json();
-            if (result.data && result.data.plotImage) {
-                setSimulationResults(result.data);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error generating circuit: ' + error.message);
-        } finally {
-            setIsSimulating(false);
+        if (fileContent) {
+            formData.append('noise_model', fileContent);
         }
-    };
+
+        const response = await fetch('/api/simulate', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            // Show error alert
+            alert(`Simulation Error: ${result.error}`);
+            return;
+        }
+
+        if (result.data && result.data.plotImage) {
+            setSimulationResults(result.data);
+        }
+    } catch (error) {
+        alert('Error in simulation: ' + error.message);
+    } finally {
+        setIsSimulating(false);
+    }
+};
 
     const resetCircuit = () => {
         setGrid(Array(numRows)

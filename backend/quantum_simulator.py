@@ -298,37 +298,58 @@ def simulate_quantum_circuit(circuit_ir, c_ops=None):
     """
     Main simulation function that takes a circuit IR and returns the simulation results.
     """
-    # Calculate number of qubits from the circuit
-    # print(circuit_ir)
-    num_qubits = max([x["numRows"] for x in circuit_ir])
+    try:
+        # Quick validation checks first
+        num_qubits = max([x["numRows"] for x in circuit_ir])
+        
+        # Early c_ops dimension check
+        if c_ops is not None:
+            expected_dim = 2**num_qubits
+            for i, op in enumerate(c_ops):
+                if not isinstance(op, qt.Qobj):
+                    return {"success": False, "error": f"Invalid Kraus operator format at index {i}"}
+                if op.dims != [[expected_dim], [expected_dim]]:
+                    return {"success": False, "error": f"Kraus operator dimensions mismatch. Expected {expected_dim}x{expected_dim} for {num_qubits} qubits, but got {op.dims[0][0]}x{op.dims[1][0]}"}
 
-    validate_circuit_layers(circuit_ir)
+        try:
+            validate_circuit_layers(circuit_ir)
+        except ValueError as e:
+            raise ValueError(f"Invalid circuit configuration: {str(e)}")
 
-    # Initialize quantum state with correct dimensions
-    dim = 2**num_qubits
-    initial_state = qt.basis(dim, 0) * qt.basis(dim, 0).dag()
-    initial_state.dims = [[2] * num_qubits, [2] * num_qubits]
+        # Initialize quantum state with correct dimensions
+        dim = 2**num_qubits
+        initial_state = qt.basis(dim, 0) * qt.basis(dim, 0).dag()
+        initial_state.dims = [[2] * num_qubits, [2] * num_qubits]
 
-    # Generate collapse operators for the correct number of qubits
-    if c_ops == None:
-        c_ops = get_depolarizing_ops(1e-2, num_qubits)
+        if c_ops == None:
+            c_ops = get_depolarizing_ops(1e-2, num_qubits)
 
-    final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
-    final_state_array = final_state.full()
+        try:
+            final_state = rep_to_evolution(circuit_ir, initial_state, c_ops)
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"Error during quantum evolution: {str(e)}")
+        except qt.QobjError:
+            raise ValueError("Quantum operator mismatch. This may be due to incompatible gate operations.")
 
-    # Get the figure from create_density_matrix_plot
-    fig = create_density_matrix_plot(final_state_array)
+        final_state_array = final_state.full()
+        
+        fig = create_density_matrix_plot(final_state_array)
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+        plot_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        plt.close(fig)
+        
+        return {"success": True, "plot_image": plot_base64}
 
-    # Save plot to bytes buffer
-    buffer = BytesIO()
-    fig.savefig(buffer, format="png")
-    buffer.seek(0)
-    plot_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
-    plt.close(fig)  # Clean up the figure
-
-    return {"plot_image": plot_base64}
-
+    except ValueError as e:
+        return {"success": False, "error": str(e)}
+    except TypeError as e:
+        return {"success": False, "error": f"Type error: {str(e)}"}
+    except MemoryError:
+        return {"success": False, "error": "Circuit is too large for available memory. Try reducing the number of qubits or gates."}
+    except Exception as e:
+        return {"success": False, "error": f"Unexpected error during simulation: {str(e)}"}
 
 # If running as main script (from API)
 if __name__ == "__main__":
