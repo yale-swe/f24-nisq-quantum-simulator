@@ -711,7 +711,12 @@ export default function DragAndDropGrid() {
 
                 {/* Circuit section */}
                 <div style={{ padding: '20px' }}>
-                    <h2 style={{ color: 'black' }}>Quantum Circuit</h2>
+                    <h2 style={{
+                        color: 'black',
+                        marginBottom: '40px' // Keeping the increased spacing after title
+                    }}>
+                        Quantum Circuit
+                    </h2>
                     <div style={{
                         position: 'relative',
                         width: `${numColumns * 60}px`,
@@ -721,7 +726,7 @@ export default function DragAndDropGrid() {
                         {/* Layer Type Indicators */}
                         <div style={{
                             position: 'absolute',
-                            top: '-25px',
+                            top: '-35px', // Keeping the increased spacing for indicators
                             left: 0,
                             display: 'grid',
                             gridTemplateColumns: `repeat(${numColumns}, 60px)`,
