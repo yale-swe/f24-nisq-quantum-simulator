@@ -294,7 +294,7 @@ def validate_circuit_layers(circuit_rep):
             used_qubits.update(gate_qubits)
 
 
-def simulate_quantum_circuit(circuit_ir, c_ops = None):
+def simulate_quantum_circuit(circuit_ir, c_ops=None):
     """
     Main simulation function that takes a circuit IR and returns the simulation results.
     """
@@ -332,9 +332,28 @@ def simulate_quantum_circuit(circuit_ir, c_ops = None):
 
 # If running as main script (from API)
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("circuit_ir", type=str)
+    parser.add_argument(
+        "--noise-model", type=str, help="Path to .npy file containing noise model"
+    )
+    args = parser.parse_args()
+
     # Get circuit IR from command line argument
-    circuit_ir = json.loads(sys.argv[1])
-    # Run simulation
-    result = simulate_quantum_circuit(circuit_ir)
+    circuit_ir = json.loads(args.circuit_ir)
+
+    # Load noise model if provided
+    c_ops = None
+    if args.noise_model:
+        # Load the numpy array and convert to qutip operators
+        c_ops = np.load(args.noise_model)
+        c_ops = [qt.Qobj(op) for op in c_ops]
+
+    # Run simulation with custom noise model if provided, otherwise uses default
+    result = simulate_quantum_circuit(circuit_ir, c_ops)
+    # print(c_ops)
+
     # Print result as JSON for API to capture
     print(json.dumps(result))

@@ -468,16 +468,21 @@ export default function DragAndDropGrid() {
         setIsSimulating(true);
         try {
             const ir = convertGridToIR();
-            console.log(ir, fileContent)
-            const requestBody = {
-                circuit_ir: ir,
-                noise_model: fileContent ? Array.from(fileContent) : null // Convert Uint8Array to regular array
-            };
+            const formData = new FormData();
+
+            // Add the circuit IR as a string
+            formData.append('circuit_ir', JSON.stringify(ir));
+
+            // Add the noise model file if it exists
+            if (fileContent) {
+                // Ensure fileContent is a File object
+                formData.append('noise_model', fileContent);
+            }
 
             const response = await fetch('/api/simulate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody),
+                // Don't set Content-Type - browser will set it automatically with boundary
+                body: formData
             });
 
             const result = await response.json();
