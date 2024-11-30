@@ -87,10 +87,14 @@ export default function DragAndDropGrid() {
         fetchStyle();
     }, []);
 
-    // Display temporary warning messages for invalid actions.
     const showTemporaryWarning = (message) => {
-        setErrorWarning(message);
-        setTimeout(() => setErrorWarning(""), 3000); // Clear warning after 3 seconds.
+        setErrorWarning({ message, isWarning: true });
+        setTimeout(() => setErrorWarning(null), 3000);
+    };
+
+    const showTemporaryMsg = (message) => {
+        setErrorWarning({ message, isWarning: false });
+        setTimeout(() => setErrorWarning(null), 3000);
     };
 
     // Logic to determine the type of a layer based on the gates placed.
@@ -639,7 +643,7 @@ export default function DragAndDropGrid() {
         const reader = new FileReader();
         reader.onload = (e) => {
             setFileContent(new Uint8Array(e.target.result));
-            updateStatus('Noise model loaded successfully', false);
+            showTemporaryMsg('Noise model loaded successfully', false);
         };
         reader.readAsArrayBuffer(file);
     };
@@ -748,7 +752,7 @@ export default function DragAndDropGrid() {
                             <p>{status.message}</p>
                         </div>
                     )}
-                    
+
                 </div>
 
                 {/* Wire Controls */}
@@ -814,7 +818,7 @@ export default function DragAndDropGrid() {
                     <button
                         onClick={() => {
                             setFileContent(null);
-                            showTemporaryWarning('Noise model reset', false);
+                            showTemporaryMsg('Noise model reset', false);
                         }}
                         style={{
                             padding: '10px 10px',
@@ -937,14 +941,15 @@ export default function DragAndDropGrid() {
                                 position: 'absolute',
                                 right: '-250px',
                                 top: '50px',
-                                backgroundColor: '#ffeb3b',
+                                backgroundColor: showWarning ? '#ffeb3b' : errorWarning.isWarning ? '#ffeb3b' : '#4CAF50',
+                                color: showWarning || errorWarning.isWarning ? 'black' : 'white',
                                 padding: '10px',
                                 borderRadius: '4px',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                 zIndex: 3,
                                 maxWidth: '200px'
                             }}>
-                                {showWarning ? 'Cannot remove layer containing gates' : errorWarning}
+                                {showWarning ? 'Cannot remove layer containing gates' : errorWarning.message}
                             </div>
                         )}
 
