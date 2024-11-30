@@ -70,21 +70,6 @@ export default function NoiseModel() {
             updateStatus('Error posting matrix data.', true); // Display error if POST fails
         }
     };
-
-    return (
-        <div data-testid="noise-model" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-            {/* File input for selecting a noise model file */}
-            <label htmlFor="fileInput" style={{ marginRight: '80px', fontSize: '20px' }}>Upload Existing Noise Model</label>
-            <input type="file" id="fileInput" style={{ fontSize: '16px' }} />
-            <button onClick={readBlob} style={{ fontSize: '16px' }}>Load Noise Model</button>
-
-            {/* Display status messages */}
-            {status && <p>{status.message}</p>}
-
-            {/* Display the content of the uploaded file */}
-            {fileContent && <pre>{fileContent}</pre>}
-        </div>
-    );
 }
 
 import * as math from 'mathjs';
