@@ -145,6 +145,162 @@ coverage run -m unittest discover
 coverage report
 ```
 
+# Testing Guide
+
+## Backend Testing (Python)
+The backend uses Python's `unittest` framework. Tests are located in the `backend/` directory with files prefixed by `test_`.
+
+### Adding Python Tests
+1. Create a new test file in the `backend/` directory with prefix `test_`:
+```python
+# test_your_module.py
+import unittest
+
+class TestYourModule(unittest.TestCase):
+    def setUp(self):
+        # Setup code runs before each test
+        pass
+        
+    def test_your_feature(self):
+        # Your test code here
+        expected = ...
+        actual = ...
+        self.assertEqual(expected, actual)
+```
+
+### Common Testing Patterns:
+
+For quantum state verification:
+```python
+def assertStateAlmostEqual(self, state1, state2):
+    np.testing.assert_allclose(
+        state1.full(), 
+        state2.full(), 
+        atol=5e-4,  # Absolute tolerance
+        rtol=5e-4   # Relative tolerance
+    )
+```
+
+For error handling:
+```python
+def test_error_case(self):
+    with self.assertRaises(ExpectedError):
+        # Code that should raise error
+        pass
+```
+
+### Running Backend Tests:
+```bash
+# Run all tests
+python -m unittest discover backend/
+
+# Run specific test file
+python -m unittest backend/test_your_module.py
+
+# Run with coverage
+coverage run -m unittest discover
+coverage report
+```
+
+## Frontend Testing (JavaScript/Jest)
+The frontend uses Jest with jsdom environment. Tests are located alongside components with .test.js or .spec.js extensions.
+
+### Adding Frontend Tests
+Create a test file next to your component:
+
+```javascript
+// YourComponent.test.js
+import { render, screen, fireEvent } from '@testing-library/react'
+import YourComponent from './YourComponent'
+
+describe('YourComponent', () => {
+    beforeEach(() => {
+        // Setup code
+    })
+
+    it('should render correctly', () => {
+        render(<YourComponent />)
+        expect(screen.getByText('expected text')).toBeInTheDocument()
+    })
+
+    it('should handle user interactions', () => {
+        render(<YourComponent />)
+        fireEvent.click(screen.getByRole('button'))
+        // Assert expected behavior
+    })
+})
+```
+
+### Common Testing Patterns:
+
+Testing API calls:
+```javascript
+it('handles API calls', async () => {
+    global.fetch = jest.fn(() => 
+        Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ data: 'test' })
+        })
+    )
+    
+    // Test component with mocked fetch
+})
+```
+
+Testing drag and drop:
+```javascript
+it('handles drag and drop', () => {
+    const { container } = render(<YourComponent />)
+    fireEvent.dragStart(screen.getByTestId('draggable'))
+    fireEvent.drop(screen.getByTestId('droppable'))
+    // Assert expected state changes
+})
+```
+
+### Running Frontend Tests:
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Run specific test file
+npm test -- YourComponent.test.js
+
+# Run tests in watch mode
+npm test -- --watch
+```
+
+## Test Configuration Files
+- Backend: No specific configuration needed for unittest
+- Frontend: Configuration in frontend-interface/jest.config.js:
+
+```javascript
+module.exports = {
+  testEnvironment: 'jsdom',
+  setupFiles: ['./jest.setup.js'],
+  testMatch: ['**/__tests__/**/*.js?(x)', '**/?(*.)+(spec|test).js?(x)']
+}
+```
+
+## Best Practices
+
+### Test file naming:
+- Backend: test_*.py
+- Frontend: *.test.js or *.spec.js
+
+### Test organization:
+- Group related tests using descriptive names
+- Use setup/teardown methods for common operations
+- Test both success and error cases
+- Mock external dependencies
+
+### Coverage goals:
+- Maintain minimum 90% coverage
+- Focus on critical paths and error handling
+- Include edge cases and boundary conditions
+
 # Technologies Used
 
 - Frontend:
