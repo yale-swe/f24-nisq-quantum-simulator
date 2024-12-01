@@ -51,7 +51,8 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
   - Converting error gates into equivalent Pauli operations
   - Simplifying error combinations using Pauli operator algebra
   - Displaying the resulting error-propagated circuit
-  This helps in understanding how noise affects the quantum computation at each stage.
+
+    This helps in understanding how noise affects the quantum computation at each stage.
 
 ## Installation
 
