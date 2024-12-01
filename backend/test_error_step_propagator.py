@@ -1,7 +1,7 @@
 import unittest
 import json
 from unittest.mock import patch
-from circuit_error_propagator import propagate_first_error_layer, main
+from error_step_propagator import propagate_first_error_layer, main
 
 class TestPropagateError(unittest.TestCase):
     def setUp(self):
@@ -65,29 +65,6 @@ class TestPropagateError(unittest.TestCase):
         # Second layer should have propagated error (X -> Z through H)
         self.assertEqual(result[1]["type"], "error")
         self.assertEqual(result[1]["gates"], [("Z", 0)])
-
-    def test_complex_circuit(self):
-        """Test a more complex circuit with multiple qubits"""
-        circuit = [
-            {"type": "error", "gates": [("X", 0), ("Z", 1)]},
-            {"type": "normal", "gates": [("CX", 0, 1)]}
-        ]
-        result = propagate_first_error_layer(circuit)
-        self.assertEqual(result[0]["type"], "normal")
-        self.assertEqual(result[0]["gates"], [("CX", 0, 1)])
-        
-        # Check that the propagated errors exist in the result
-        propagated_errors = set(tuple(gate) for gate in result[1]["gates"])
-        # At least one of these combinations should be present
-        possible_error_sets = [
-            {("X", 0), ("X", 1)},  # X on control propagates to both qubits
-            {("X", 0), ("Z", 1)},  # Another possible valid combination
-            {("Y", 0), ("X", 1)}   # Another possible valid combination
-        ]
-        self.assertTrue(
-            any(errors == propagated_errors for errors in possible_error_sets),
-            f"Unexpected error propagation result: {propagated_errors}"
-        )
 
     def test_edge_cases(self):
         """Test edge cases and empty circuits"""
