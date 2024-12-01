@@ -2,6 +2,10 @@
   "name": "quantum-simulator-3",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
   "scripts": {
     "postinstall": "cd frontend-interface && npm install && npx next build",
     "dev:website": "cd frontend-interface && npx next dev",
