@@ -69,18 +69,52 @@ The application is deployed on Render.com. Access the live version at [https://f
 
 ```
 f24-nisq-quantum-simulator/
-├── frontend-interface/     # Next.js frontend
-│   ├── app/               # Application routes
-│   ├── components/        # React components
-│   └── public/            # Static assets
-├── backend/               # Python backend
-│   ├── quantum_simulator.py   # Core simulation engine
-│   ├── error_propagation.py  # Error handling
-│   └── test_evolution.py     # Test suite
-├── visualizations/        # Visualization tools
-│   ├── Density_Plot.py   # Density matrix plotting
-│   └── Bloch_Sphere.py   # Bloch sphere visualization
-└── requirements.txt      # Python dependencies
+├── .github/                    # GitHub specific configurations
+│   └── workflows/             # CI/CD workflow configurations
+│       ├── coverage_workflow.yml
+│       └── test_workflow.yml
+│
+├── frontend-interface/        # Next.js frontend application
+│   ├── app/                  # Next.js app directory
+│   │   ├── api/             # API endpoints
+│   │   ├── globals.css      # Global styles
+│   │   ├── layout.js        # App layout
+│   │   └── page.js         # Homepage
+│   ├── components/          # React components
+│   │   ├── DensityPlot.js
+│   │   ├── DragAndDropGrid.js
+│   │   ├── LoadingOverlay.js
+│   │   └── NoiseModel.js
+│   ├── data/                # Data files
+│   │   └── stats.txt
+│   ├── public/             # Static assets
+│   │   └── icons/
+│   ├── .env.local          # Local environment variables
+│   ├── jest.config.js      # Jest testing configuration
+│   ├── jest.setup.js       # Jest setup file
+│   ├── jsconfig.json       # JavaScript configuration
+│   └── next.config.mjs     # Next.js configuration
+│
+├── backend/                 # Python backend
+│   ├── __init__.py
+│   ├── error_propagation.py
+│   ├── error_step_propagator.py
+│   ├── quantum_simulator.py
+│   ├── utils.py
+│   ├── test_error_propagation.py
+│   ├── test_error_step_propagator.py
+│   ├── test_evolution.py
+│   └── test_utils.py
+│
+├── visualizations/          # Visualization tools
+│   ├── __init__.py
+│   └── Density_Plot.py
+│
+├── .gitignore
+├── babel.config.js         # Babel configuration
+├── package.json           # Node.js dependencies and scripts
+├── render.yaml            # Render deployment configuration
+└── requirements.txt       # Python dependencies
 ```
 
 # Technical Details
