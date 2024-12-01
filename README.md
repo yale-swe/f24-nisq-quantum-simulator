@@ -25,6 +25,34 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
     - Error simplification using Pauli operator algebra.
     - Visual representation of error effects.
 
+## Button Functions
+
+### Circuit Manipulation
+- **Add Wire**: Adds a new qubit wire to the circuit (up to maximum 8 qubits). Each wire represents a quantum bit that can be manipulated using quantum gates.
+
+- **Reset Circuit**: Clears all gates from the current circuit, returning it to an empty state while maintaining the current number of qubits. This is useful when you want to start a new circuit design from scratch.
+
+### Noise Model Controls
+- **Load Noise Model**: Opens a file upload dialog to import a custom noise model in .txt format. The noise model should contain Kraus operators that define the quantum channel's noise characteristics. The uploaded model must satisfy:
+  - Valid JSON syntax
+  - Square matrices with matching dimensions
+  - Sum of E_i * E_i^† equals identity matrix (completeness relation)
+
+- **Reset Noise Model**: Removes the currently loaded noise model, returning the simulator to ideal (noiseless) operation mode.
+
+### Simulation Controls
+- **Generate Results**: Executes the quantum circuit simulation and displays the results through:
+  - 3D density matrix visualization
+  - Magnitude representation through bar heights
+  - Phase information encoded in color
+  The simulation takes into account any loaded noise models.
+
+- **Propagate Error**: Analyzes how errors propagate through the circuit by:
+  - Converting error gates into equivalent Pauli operations
+  - Simplifying error combinations using Pauli operator algebra
+  - Displaying the resulting error-propagated circuit
+  This helps in understanding how noise affects the quantum computation at each stage.
+
 ## Installation
 
 ### Prerequisites
@@ -65,9 +93,12 @@ npm install
 
 ```http://localhost:3000```
 
-## Production Deployment
+### Live Deployment
 
-The application is deployed using Heroku. Access the live version at [https://f24-nisq-quantum-simulator.onrender.com/].
+The application is deployed and accessible at:
+[https://nisq-simulator-a24607e46084.herokuapp.com/](https://nisq-simulator-a24607e46084.herokuapp.com/)
+
+This live version provides all features of the quantum circuit simulator without requiring local installation.
 
 # Project Structure
 
