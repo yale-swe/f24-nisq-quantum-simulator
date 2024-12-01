@@ -281,22 +281,25 @@ class TestQuantumCircuitEvolution(unittest.TestCase):
 
     def test_error_cases(self):
         # Test invalid single-qubit gate
-        with self.assertRaises(ValueError):
-            simulate_quantum_circuit([self.create_layer([("INVALID", 0)])])
+        result = simulate_quantum_circuit([self.create_layer([("INVALID", 0)])])
+        self.assertFalse(result["success"])
+        self.assertTrue("Invalid gate format" in result["error"] or 
+                       "Unsupported single-qubit gate" in result["error"])
 
         # Test invalid two-qubit gate
-        with self.assertRaises(ValueError):
-            simulate_quantum_circuit([self.create_layer([("INVALID", 0, 1)])])
+        result = simulate_quantum_circuit([self.create_layer([("INVALID", 0, 1)])])
+        self.assertFalse(result["success"])
+        self.assertTrue("Invalid gate format" in result["error"] or 
+                       "Unsupported two-qubit gate" in result["error"])
 
         # Test invalid gate format
-        with self.assertRaises(ValueError):
-            simulate_quantum_circuit([self.create_layer([("X", 0, 1, 2)])])
+        result = simulate_quantum_circuit([self.create_layer([("X", 0, 1, 2)])])
+        self.assertFalse(result["success"])
+        self.assertTrue("Invalid gate format" in result["error"])
 
-        # Test invalid input state
+        # Test invalid input state - this one still raises TypeError because it's in rep_to_evolution
         with self.assertRaises(TypeError):
-            rep_to_evolution(
-                [self.create_layer([("X", 0)])], qt.basis(2, 0), self.no_ops
-            )
+            rep_to_evolution([self.create_layer([("X", 0)])], qt.basis(2, 0), self.no_ops)
 
     def test_complex_serialization(self):
         # Test complex number serialization
