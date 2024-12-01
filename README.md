@@ -38,7 +38,7 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
   - Square matrices with matching dimensions
   - Sum of E_i * E_i^† equals identity matrix (completeness relation)
 
-- **Reset Noise Model**: Removes the currently loaded noise model, returning the simulator to ideal (noiseless) operation mode.
+- **Reset Noise Model**: Removes the currently loaded noise model, returning the simulator to default noise model (depolarizing noise on each qubit, p=1e-3).
 
 ### Simulation Controls
 - **Generate Results**: Executes the quantum circuit simulation and displays the results through:
