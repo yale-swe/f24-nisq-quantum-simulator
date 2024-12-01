@@ -7,7 +7,6 @@
     "npm": "9.x"
   },
   "scripts": {
-    "postinstall": "cd frontend-interface && npm install && npx next build",
     "dev:website": "cd frontend-interface && npx next dev",
     "build": "cd frontend-interface && npx next build",
     "start": "cd frontend-interface && npx next start -p $PORT",
