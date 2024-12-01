@@ -145,7 +145,7 @@ coverage run -m unittest discover
 coverage report
 ```
 
-# Testing Guide
+# Guide to Add Tests
 
 ## Backend Testing (Python)
 The backend uses Python's `unittest` framework. Tests are located in the `backend/` directory with files prefixed by `test_`.
