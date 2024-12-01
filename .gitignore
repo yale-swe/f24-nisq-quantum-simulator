@@ -7,3 +7,4 @@ outputs.json
 __pycache__/
 visualizations/__pycache__/
 frontend-interface/data/stats.txt
+*.coverage

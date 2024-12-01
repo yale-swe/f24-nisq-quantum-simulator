@@ -8,7 +8,7 @@ export async function POST(request) {
         const { circuit_ir } = data;
 
         // Call your Python script using spawn
-        const pythonScript = path.join(process.cwd(), '..', 'backend', 'propagate_error.py');
+        const pythonScript = path.join(process.cwd(), '..', 'backend', 'error_step_propagator.py');
         const pythonProcess = spawn('python3', [pythonScript, JSON.stringify(circuit_ir)]);
 
         return new Promise((resolve, reject) => {
