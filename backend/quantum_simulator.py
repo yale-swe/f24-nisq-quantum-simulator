@@ -301,15 +301,21 @@ def simulate_quantum_circuit(circuit_ir, c_ops=None):
     try:
         # Quick validation checks first
         num_qubits = max([x["numRows"] for x in circuit_ir])
-        
+
         # Early c_ops dimension check
         if c_ops is not None:
             expected_dim = 2**num_qubits
             for i, op in enumerate(c_ops):
                 if not isinstance(op, qt.Qobj):
-                    return {"success": False, "error": f"Invalid Kraus operator format at index {i}"}
+                    return {
+                        "success": False,
+                        "error": f"Invalid Kraus operator format at index {i}",
+                    }
                 if op.dims != [[expected_dim], [expected_dim]]:
-                    return {"success": False, "error": f"Kraus operator dimensions mismatch. Expected {expected_dim}x{expected_dim} for {num_qubits} qubits, but got {op.dims[0][0]}x{op.dims[1][0]}"}
+                    return {
+                        "success": False,
+                        "error": f"Kraus operator dimensions mismatch. Expected {expected_dim}x{expected_dim} for {num_qubits} qubits, but got {op.dims[0][0]}x{op.dims[1][0]}",
+                    }
 
         try:
             validate_circuit_layers(circuit_ir)
@@ -329,17 +335,19 @@ def simulate_quantum_circuit(circuit_ir, c_ops=None):
         except (TypeError, ValueError) as e:
             raise ValueError(f"Error during quantum evolution: {str(e)}")
         except qt.QobjError:
-            raise ValueError("Quantum operator mismatch. This may be due to incompatible gate operations.")
+            raise ValueError(
+                "Quantum operator mismatch. This may be due to incompatible gate operations."
+            )
 
         final_state_array = final_state.full()
-        
+
         fig = create_density_matrix_plot(final_state_array)
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
         buffer.seek(0)
         plot_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
         plt.close(fig)
-        
+
         return {"success": True, "plot_image": plot_base64}
 
     except ValueError as e:
@@ -347,9 +355,16 @@ def simulate_quantum_circuit(circuit_ir, c_ops=None):
     except TypeError as e:
         return {"success": False, "error": f"Type error: {str(e)}"}
     except MemoryError:
-        return {"success": False, "error": "Circuit is too large for available memory. Try reducing the number of qubits or gates."}
+        return {
+            "success": False,
+            "error": "Circuit is too large for available memory. Try reducing the number of qubits or gates.",
+        }
     except Exception as e:
-        return {"success": False, "error": f"Unexpected error during simulation: {str(e)}"}
+        return {
+            "success": False,
+            "error": f"Unexpected error during simulation: {str(e)}",
+        }
+
 
 # If running as main script (from API)
 if __name__ == "__main__":

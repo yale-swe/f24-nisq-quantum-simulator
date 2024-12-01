@@ -73,13 +73,17 @@ export default function DragAndDropGrid() {
     useEffect(() => {
         const fetchStyle = async () => {
             try {
-                const response = await fetch('/api/style-select'); // API call for style.
+                const response = await fetch('/api/style-select');
+                if (!response.ok) {
+                    throw new Error('Style API response was not ok');
+                }
                 const data = await response.json();
                 const style = data.selectedStyle === '' ? 'default' : data.selectedStyle;
                 setSelectedStyle(style);
                 setIcons(createInitialIcons(style === 'default' ? '' : style));
             } catch (error) {
                 console.error('Failed to get style:', error);
+                // Fall back to default style
                 setSelectedStyle('default');
                 setIcons(createInitialIcons(''));
             }
@@ -491,16 +495,20 @@ export default function DragAndDropGrid() {
             });
 
             const result = await response.json();
+            console.log('Simulation result:', result); // Debug log
+
             if (result.success) {
                 if (result.plot_image) {
-                    setSimulationResults({ plotImage: result.plot_image });
+                    setSimulationResults({
+                        plotImage: result.plot_image
+                    });
+                } else {
+                    showError('No plot data received from simulation');
                 }
             } else {
-                // Show error message from backend
-                showError(result.error || 'Error: Noise Model Dimensions Incompatible with Circuit.');
+                showError(result.error || 'Simulation failed');
             }
         } catch (error) {
-            console.error('Error:', error);
             showError(error.message || 'Error: Generating Circuit');
         } finally {
             setIsSimulating(false);

@@ -93,12 +93,11 @@ export async function POST(request) {
 
         return NextResponse.json({
             message: 'Simulation completed successfully',
-            data: {
-                densityMatrix: simulationResult.density_matrix,
-                plotImage: simulationResult.plot_image
-            }
+            success: simulationResult.success,
+            error: simulationResult.error,
+            plot_image: simulationResult.plot_image,  // Move to root level
+            density_matrix: simulationResult.density_matrix  // Move to root level if needed
         }, { status: 200 });
-
     } catch (error) {
         if (tempFilePath && fs.existsSync(tempFilePath)) {
             fs.unlinkSync(tempFilePath);
