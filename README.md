@@ -33,7 +33,7 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
 - **Reset Circuit**: Clears all gates from the current circuit, returning it to an empty state while maintaining the current number of qubits. This is useful when you want to start a new circuit design from scratch.
 
 ### Noise Model Controls
-- **Load Noise Model**: Opens a file upload dialog to import a custom noise model in .txt format. The noise model should contain Kraus operators that define the quantum channel's noise characteristics. The uploaded model must satisfy:
+- **Load Noise Model**: Opens a file upload dialog to import a custom noise model in .npy format (saved via `np.save(kraus_operators)`). The noise model should contain Kraus operators that define the quantum channel's noise characteristics. The uploaded model must satisfy:
   - Valid JSON syntax
   - Square matrices with matching dimensions
   - Sum of E_i * E_i^† equals identity matrix (completeness relation)
