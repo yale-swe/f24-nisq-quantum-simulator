@@ -3,6 +3,7 @@
 A sophisticated web-based quantum circuit simulator designed for experimenting with noisy intermediate-scale quantum (NISQ) environments. This project combines a Next.js frontend with a Python backend to provide an interactive platform for quantum circuit design, simulation, and visualization.
 
 ## Features
+
 - **Circuit Design & Simulation**:
   - Interactive Circuit Designer: Drag-and-drop interface for building quantum circuits.
   - Real-time Simulation: Instant visualization of quantum states.
@@ -27,22 +28,25 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
 ## Installation
 
 ### Prerequisites
+
 - Python 3.x
 - Node.js (Latest LTS version)
 - npm or yarn
 
 ### Setup
+
 1. Clone the repository:
+
 ```
 bash
 git clone https://github.com/yale-swe/f24-nisq-quantum-simulator/
 cd f24-nisq-quantum-simulator
 ```
 
-2.	Install Python dependencies:
+2. Install Python dependencies:
 ```pip install -r requirements.txt```
 
-3.	Install JavaScript dependencies:
+3. Install JavaScript dependencies:
 
 ```
 cd frontend-interface
@@ -57,13 +61,13 @@ npm install
 
 ```npm run dev:website```
 
-2.	Access the application at:
+2. Access the application at:
 
 ```http://localhost:3000```
 
 ## Production Deployment
 
-The application is deployed on Render.com. Access the live version at [https://f24-nisq-quantum-simulator.onrender.com/].
+The application is deployed using Heroku. Access the live version at [https://f24-nisq-quantum-simulator.onrender.com/].
 
 # Project Structure
 
@@ -148,10 +152,13 @@ coverage report
 # Guide to Add Tests
 
 ## Backend Testing (Python)
+
 The backend uses Python's `unittest` framework. Tests are located in the `backend/` directory with files prefixed by `test_`.
 
 ### Adding Python Tests
+
 1. Create a new test file in the `backend/` directory with prefix `test_`:
+
 ```python
 # test_your_module.py
 import unittest
@@ -168,9 +175,10 @@ class TestYourModule(unittest.TestCase):
         self.assertEqual(expected, actual)
 ```
 
-### Common Testing Patterns:
+### Common Testing Patterns
 
 For quantum state verification:
+
 ```python
 def assertStateAlmostEqual(self, state1, state2):
     np.testing.assert_allclose(
@@ -182,6 +190,7 @@ def assertStateAlmostEqual(self, state1, state2):
 ```
 
 For error handling:
+
 ```python
 def test_error_case(self):
     with self.assertRaises(ExpectedError):
@@ -189,7 +198,8 @@ def test_error_case(self):
         pass
 ```
 
-### Running Backend Tests:
+### Running Backend Tests
+
 ```bash
 # Run all tests
 python -m unittest discover backend/
@@ -203,9 +213,11 @@ coverage report
 ```
 
 ## Frontend Testing (JavaScript/Jest)
+
 The frontend uses Jest with jsdom environment. Tests are located alongside components with .test.js or .spec.js extensions.
 
 ### Adding Frontend Tests
+
 Create a test file next to your component:
 
 ```javascript
@@ -231,9 +243,10 @@ describe('YourComponent', () => {
 })
 ```
 
-### Common Testing Patterns:
+### Common Testing Patterns
 
 Testing API calls:
+
 ```javascript
 it('handles API calls', async () => {
     global.fetch = jest.fn(() => 
@@ -248,6 +261,7 @@ it('handles API calls', async () => {
 ```
 
 Testing drag and drop:
+
 ```javascript
 it('handles drag and drop', () => {
     const { container } = render(<YourComponent />)
@@ -257,7 +271,8 @@ it('handles drag and drop', () => {
 })
 ```
 
-### Running Frontend Tests:
+### Running Frontend Tests
+
 ```bash
 # Run all tests
 npm test
@@ -273,6 +288,7 @@ npm test -- --watch
 ```
 
 ## Test Configuration Files
+
 - Backend: No specific configuration needed for unittest
 - Frontend: Configuration in frontend-interface/jest.config.js:
 
@@ -286,17 +302,20 @@ module.exports = {
 
 ## Best Practices
 
-### Test file naming:
-- Backend: test_*.py
-- Frontend: *.test.js or *.spec.js
+### Test file naming
 
-### Test organization:
+- Backend: test_*.py
+- Frontend: *.test.js or*.spec.js
+
+### Test organization
+
 - Group related tests using descriptive names
 - Use setup/teardown methods for common operations
 - Test both success and error cases
 - Mock external dependencies
 
-### Coverage goals:
+### Coverage goals
+
 - Maintain minimum 90% coverage
 - Focus on critical paths and error handling
 - Include edge cases and boundary conditions
@@ -354,4 +373,4 @@ For issues and feature requests, please use the GitHub issue tracker or contact 
 
 # Contact
 
-Project Link: https://github.com/yale-swe/f24-nisq-quantum-simulator
+Project Link: <https://github.com/yale-swe/f24-nisq-quantum-simulator>
