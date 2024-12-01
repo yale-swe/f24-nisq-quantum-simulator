@@ -35,8 +35,8 @@ A sophisticated web-based quantum circuit simulator designed for experimenting w
 1. Clone the repository:
 ```
 bash
-git clone https://github.com/rohansk1/nisq_private.git
-cd nisq_private
+git clone https://github.com/yale-swe/f24-nisq-quantum-simulator/
+cd f24-nisq-quantum-simulator
 ```
 
 2.	Install Python dependencies:
@@ -68,7 +68,7 @@ The application is deployed on Render.com. Access the live version at [https://f
 # Project Structure
 
 ```
-nisq_private/
+f24-nisq-quantum-simulator/
 ├── frontend-interface/     # Next.js frontend
 │   ├── app/               # Application routes
 │   ├── components/        # React components
