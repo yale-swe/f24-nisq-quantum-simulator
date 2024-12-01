@@ -1,0 +1,2 @@
+web: node server.js
+api: gunicorn app:app
