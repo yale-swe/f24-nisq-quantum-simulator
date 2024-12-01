@@ -1,6 +1,6 @@
 # Core quantum computing packages with compatible versions
-numpy>=1.26.0  # Rolling back to a more stable version for QuTiP
-qutip==5.0.1   # Using an older version known to work
+numpy==1.23.5  # Rolling back to a more stable version for QuTiP
+qutip==5.0.1   # Using an older version known to work with numpy 1.23.5
 matplotlib==3.7.1
 plotly==5.14.1
 qiskit==1.2.2
