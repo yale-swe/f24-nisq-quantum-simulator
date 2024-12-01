@@ -1,7 +1,7 @@
 import unittest
 import json
 from unittest.mock import patch
-from propagate_error import propagate_first_error_layer, main
+from error_step_propagator import propagate_first_error_layer, main
 
 class TestPropagateError(unittest.TestCase):
     def setUp(self):
