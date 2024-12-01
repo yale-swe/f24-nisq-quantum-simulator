@@ -1,1 +1,1 @@
-web: npm run dev:website
+web: cd frontend-interface && npm start
