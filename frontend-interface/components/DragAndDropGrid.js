@@ -1,89 +1,182 @@
-'use client'; // Next.js directive to render this component on the client side.
+/**
+ * Quantum Circuit Editor Component
+ * 
+ * A React-based drag-and-drop interface for building and simulating quantum circuits.
+ * Supports multiple gate types, error simulation, and circuit visualization.
+ */
 
-import { useState, useEffect } from 'react'; // React hooks for state management and lifecycle effects.
+'use client'; // Next.js directive for client-side component rendering
+
+// Core React and functionality imports
+import { useState, useEffect } from 'react';
 import {
-    DragDropContext, // Context for drag-and-drop operations.
-    Droppable,       // Container where draggable items can be dropped.
-    Draggable        // Item that can be dragged.
+    DragDropContext, // Manages overall drag and drop functionality
+    Droppable,       // Defines valid drop target areas
+    Draggable        // Makes elements draggable
 } from '@hello-pangea/dnd';
-import Image from 'next/image'; // Optimized image component from Next.js.
-import { v4 as uuidv4 } from 'uuid'; // Library to generate unique IDs for gates.
+import Image from 'next/image';   // Next.js optimized image component
+import { v4 as uuidv4 } from 'uuid'; // Generates unique identifiers for gates
 
-import DensityPlot from './DensityPlot'; // Component for displaying simulation results.
-import LoadingOverlay from './LoadingOverlay'; // Overlay component to indicate loading state.
+// Custom component imports for circuit visualization
+import DensityPlot from './DensityPlot';       // Displays quantum simulation results
+import LoadingOverlay from './LoadingOverlay'; // Shows loading state during operations
 
-// Define possible style variants for gates.
+/**
+ * Available visual style variants for quantum gates
+ * Determines the appearance of gate icons in the interface
+ * @constant {Object}
+ */
 export const STYLE_VARIANTS = {
-    DEFAULT: 'default',
-    BLACK_WHITE: '_bw',
-    INVERTED: '_invert'
+    DEFAULT: 'default',    // Standard gate appearance
+    BLACK_WHITE: '_bw',    // Black and white version
+    INVERTED: '_invert'    // Inverted colors
 };
 
-// Function to create the initial set of quantum gate icons based on style.
+/**
+ * Creates the initial set of available quantum gates with specified styling
+ * @param {string} styleVariant - The visual style suffix to apply to gate icons
+ * @returns {Array<Object>} Array of gate objects with their properties and styling
+ */
 export const createInitialIcons = (styleVariant) => [
-    // Standard quantum gates with optional style suffix.
-    { id: 'hadamard-gate', content: `/icons/H_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'H_Gate', value: 8 },
-    { id: 'pauli-x-gate', content: `/icons/X_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Gate', value: 4 },
-    { id: 'pauli-y-gate', content: `/icons/Y_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Gate', value: 5 },
-    { id: 'pauli-z-gate', content: `/icons/Z_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Gate', value: 3 },
-    { id: 'phase-s-gate', content: `/icons/S_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'S_Gate', value: 6 },
-    { id: 'phase-t-gate', content: `/icons/T_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'T_Gate', value: 7 },
-    // CNOT gates don't vary by style.
-    { id: 'cnot-down', content: '/icons/CNOT.svg', type: 'CNOT', value: 10, controlUp: true },
-    { id: 'cnot-up', content: '/icons/CNOT_down.svg', type: 'CNOT', value: 9, controlUp: false },
-    // Error gates with optional style suffix.
-    { id: 'pauli-x-gate-err', content: `/icons/X_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'X_Err', value: 11 },
-    { id: 'pauli-y-gate-err', content: `/icons/Y_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Y_Err', value: 12 },
-    { id: 'pauli-z-gate-err', content: `/icons/Z_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, type: 'Z_Err', value: 13 },
+    // Single-qubit standard gates
+    { 
+        id: 'hadamard-gate', 
+        content: `/icons/H_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'H_Gate', 
+        value: 8 
+    },
+    { 
+        id: 'pauli-x-gate', 
+        content: `/icons/X_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'X_Gate', 
+        value: 4 
+    },
+    { 
+        id: 'pauli-y-gate', 
+        content: `/icons/Y_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'Y_Gate', 
+        value: 5 
+    },
+    { 
+        id: 'pauli-z-gate', 
+        content: `/icons/Z_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'Z_Gate', 
+        value: 3 
+    },
+    { 
+        id: 'phase-s-gate', 
+        content: `/icons/S_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'S_Gate', 
+        value: 6 
+    },
+    { 
+        id: 'phase-t-gate', 
+        content: `/icons/T_Gate${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'T_Gate', 
+        value: 7 
+    },
+    // Two-qubit CNOT gates (style-independent)
+    { 
+        id: 'cnot-down', 
+        content: '/icons/CNOT.svg', 
+        type: 'CNOT', 
+        value: 10, 
+        controlUp: true 
+    },
+    { 
+        id: 'cnot-up', 
+        content: '/icons/CNOT_down.svg', 
+        type: 'CNOT', 
+        value: 9, 
+        controlUp: false 
+    },
+    // Error gates for noise simulation
+    { 
+        id: 'pauli-x-gate-err', 
+        content: `/icons/X_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'X_Err', 
+        value: 11 
+    },
+    { 
+        id: 'pauli-y-gate-err', 
+        content: `/icons/Y_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'Y_Err', 
+        value: 12 
+    },
+    { 
+        id: 'pauli-z-gate-err', 
+        content: `/icons/Z_Err${styleVariant === 'default' ? '' : styleVariant}.svg`, 
+        type: 'Z_Err', 
+        value: 13 
+    },
 ];
 
-// Define constraints for the grid dimensions.
-export const INITIAL_COLUMNS = 10;
-export const MAX_ROWS = 8;
-export const MIN_COLUMNS = 1;
-export const MAX_COLUMNS = 20;
+/**
+ * Circuit grid dimension constraints
+ * Define the physical limits of the quantum circuit
+ */
+export const INITIAL_COLUMNS = 10;  // Starting number of time steps
+export const MAX_ROWS = 8;          // Maximum number of qubits
+export const MIN_COLUMNS = 1;       // Minimum circuit depth
+export const MAX_COLUMNS = 20;      // Maximum circuit depth
 
+/**
+ * Main quantum circuit editor component
+ * Provides drag-and-drop interface for building quantum circuits
+ */
 export default function DragAndDropGrid() {
-    // State for managing grid style, gate icons, dimensions, and warnings.
-    const [selectedStyle, setSelectedStyle] = useState(''); // Active style variant.
-    const [icons, setIcons] = useState([]); // Available gate icons.
-    const [numRows, setNumRows] = useState(2); // Number of wires (rows) in the grid.
-    const [errorWarning, setErrorWarning] = useState(""); // Warning messages.
-    const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS); // Number of columns (layers).
-    const [dragAttempts, setDragAttempts] = useState(0); // Drag operation count for analytics.
+    // Style and visualization state
+    const [selectedStyle, setSelectedStyle] = useState(''); // Current visual theme
+    const [icons, setIcons] = useState([]);                 // Available quantum gates
+    
+    // Circuit structure state
+    const [numRows, setNumRows] = useState(2);           // Number of qubits
+    const [numColumns, setNumColumns] = useState(INITIAL_COLUMNS); // Circuit depth
+    const [dragAttempts, setDragAttempts] = useState(0); // Tracks user interactions
+    
+    // User feedback state
+    const [errorWarning, setErrorWarning] = useState(""); // Error messages
+    const [showWarning, setShowWarning] = useState(false); // Warning visibility
+    const [status, setStatus] = useState(null);           // Operation status
+    
+    /**
+     * Initialize quantum circuit grid with empty cells
+     * Each cell can contain a gate or be marked as occupied by a multi-qubit gate
+     */
     const [grid, setGrid] = useState(
-        // Initialize the grid with empty cells.
         Array(numRows)
             .fill(null)
             .map(() =>
                 Array(numColumns).fill(null).map(() => ({
-                    gate: null,        // The gate placed in the cell.
-                    occupiedBy: null, // ID of the gate occupying the cell.
+                    gate: null,        // The quantum gate in this position
+                    occupiedBy: null,  // ID of multi-qubit gate occupying this position
                 }))
             )
     );
-    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty')); // Layer types for visualization.
-    const [simulationResults, setSimulationResults] = useState(null); // Simulation results.
-    const [isSimulating, setIsSimulating] = useState(false); // Simulating state.
-    const [showWarning, setShowWarning] = useState(false); // Warning for invalid operations.
-    const [status, setStatus] = useState(null);
-    const [fileContent, setFileContent] = useState(null);
+    
+    // Circuit visualization and simulation state
+    const [layerTypes, setLayerTypes] = useState(Array(INITIAL_COLUMNS).fill('empty')); // Gate layer types
+    const [simulationResults, setSimulationResults] = useState(null);  // Simulation output
+    const [isSimulating, setIsSimulating] = useState(false);           // Simulation status
+    const [fileContent, setFileContent] = useState(null);              // Uploaded noise model
 
-    // Fetch style selection on initial render and set gate icons accordingly.
+    /**
+     * Fetches and initializes the visual style configuration on component mount
+     */
     useEffect(() => {
         const fetchStyle = async () => {
             try {
                 const response = await fetch('/api/style-select');
-                if (!response.ok) {
-                    throw new Error('Style API response was not ok');
-                }
+                if (!response.ok) throw new Error('Style API response was not ok');
+                
                 const data = await response.json();
+                // Use default style if none selected
                 const style = data.selectedStyle === '' ? 'default' : data.selectedStyle;
                 setSelectedStyle(style);
                 setIcons(createInitialIcons(style === 'default' ? '' : style));
             } catch (error) {
                 console.error('Failed to get style:', error);
-                // Fall back to default style
+                // Fall back to default style on error
                 setSelectedStyle('default');
                 setIcons(createInitialIcons(''));
             }
@@ -91,30 +184,47 @@ export default function DragAndDropGrid() {
         fetchStyle();
     }, []);
 
+    /**
+     * Displays an error message for 3 seconds
+     * @param {string} message - Error message to display
+     */
     const showError = (message) => {
         setErrorWarning({ message, type: 'error' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
+    /**
+     * Displays a warning message for 3 seconds
+     * @param {string} message - Warning message to display
+     */
     const showTemporaryWarning = (message) => {
         setErrorWarning({ message, type: 'warning' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
+    /**
+     * Displays a success message for 3 seconds
+     * @param {string} message - Success message to display
+     */
     const showTemporaryMsg = (message) => {
         setErrorWarning({ message, type: 'success' });
         setTimeout(() => setErrorWarning(null), 3000);
     };
 
-    // Logic to determine the type of a layer based on the gates placed.
+    /**
+     * Determines the type of circuit layer based on its gates
+     * @param {number} column - Index of the layer to analyze
+     * @returns {string} Layer type ('empty', 'mixed', 'error', or 'normal')
+     */
     const determineLayerType = (column) => {
-        let hasErrorGate = false; // Track presence of error gates.
-        let hasNormalGate = false; // Track presence of standard gates.
-        let hasAnyGate = false; // Track presence of any gates.
+        let hasErrorGate = false;    // Track presence of error gates
+        let hasNormalGate = false;   // Track presence of standard gates
+        let hasAnyGate = false;      // Track presence of any gates
 
+        // Check each cell in the column for gates
         for (let row = 0; row < numRows; row++) {
             const cell = grid[row][column];
-            // Check for gates or CNOT occupancy.
+            // Check for gates or CNOT occupancy
             if (cell.gate || (cell.occupiedBy && grid.some(r => r[column]?.gate?.id === cell.occupiedBy))) {
                 hasAnyGate = true;
                 if (cell.gate?.type?.endsWith('_Err')) {
@@ -125,7 +235,7 @@ export default function DragAndDropGrid() {
             }
         }
 
-        // Determine layer type based on gate presence.
+        // Return appropriate layer type based on gate presence
         if (!hasAnyGate) return 'empty';
         if (hasErrorGate && hasNormalGate) return 'mixed';
         if (hasErrorGate) return 'error';
@@ -133,7 +243,12 @@ export default function DragAndDropGrid() {
         return 'empty';
     };
 
-    // Verify if a gate can be placed in a column based on its compatibility.
+    /**
+     * Verifies if a gate can be placed in a column based on compatibility
+     * @param {number} destCol - Target column index
+     * @param {string} gateType - Type of gate being placed
+     * @returns {boolean} Whether the gate placement is allowed
+     */
     const checkLayerCompatibility = (destCol, gateType) => {
         const currentLayerType = determineLayerType(destCol);
         const isErrorGate = gateType.endsWith('_Err');
@@ -145,10 +260,20 @@ export default function DragAndDropGrid() {
         showTemporaryWarning('Cannot mix error and non-error gates in the same layer.');
         return false;
     };
+
+    /**
+     * Returns the appropriate CNOT gate image based on control and target positions
+     * @param {number} control - Index of control qubit
+     * @param {number} target - Index of target qubit
+     * @returns {string} Path to the appropriate CNOT gate image
+     */
     const getCNOTImage = (control, target) => {
         return control < target ? '/icons/CNOT.svg' : '/icons/CNOT_down.svg';
     };
 
+    /**
+     * Adds a new layer (column) to the circuit if within size limits
+     */
     const addLayer = () => {
         if (numColumns < MAX_COLUMNS) {
             setNumColumns(prev => prev + 1);
@@ -163,10 +288,17 @@ export default function DragAndDropGrid() {
         }
     };
 
+    /**
+     * Checks if the last column contains any gates
+     * @returns {boolean} True if last column has gates
+     */
     const checkLastColumnForGates = () => {
         return grid.some(row => row[numColumns - 1].gate !== null);
     };
 
+    /**
+     * Removes the last layer if it's empty and above minimum size
+     */
     const removeLayer = () => {
         if (numColumns > MIN_COLUMNS) {
             if (checkLastColumnForGates()) {
@@ -180,6 +312,9 @@ export default function DragAndDropGrid() {
         }
     };
 
+    /**
+     * Adds a new qubit (wire) to the circuit if within size limits
+     */
     const addWire = () => {
         if (numRows < MAX_ROWS) {
             setNumRows(prev => prev + 1);
@@ -193,17 +328,25 @@ export default function DragAndDropGrid() {
         }
     };
 
+    /**
+     * Removes a specific wire and adjusts CNOT gates accordingly
+     * @param {number} wireIndex - Index of wire to remove
+     */
     const removeWire = (wireIndex) => {
         if (numRows > 1) {
+            // Remove the wire and adjust remaining grid
             const newGrid = grid.filter((_, idx) => idx !== wireIndex);
 
+            // Adjust CNOT gates affected by wire removal
             const finalGrid = newGrid.map(row =>
                 row.map(cell => {
                     if (cell.gate?.type === 'CNOT') {
                         const [control, target] = cell.gate.wireIndices || [0, 1];
+                        // Remove CNOT if it uses the removed wire
                         if (control === wireIndex || target === wireIndex) {
                             return { gate: null, occupiedBy: null };
                         }
+                        // Adjust indices for remaining CNOTs
                         const newControl = control > wireIndex ? control - 1 : control;
                         const newTarget = target > wireIndex ? target - 1 : target;
                         return {
@@ -218,8 +361,10 @@ export default function DragAndDropGrid() {
                 })
             );
 
+            // Update state
             setNumRows(prev => prev - 1);
             setGrid(finalGrid);
+            // Recalculate layer types after wire removal
             const newLayerTypes = layerTypes.map((_, colIndex) => determineLayerType(colIndex));
             setLayerTypes(newLayerTypes);
         }
